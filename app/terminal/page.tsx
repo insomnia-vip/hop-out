@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Check, Code2, Copy, ExternalLink, LoaderCircle, ShieldCheck, Terminal } from "lucide-react";
+import { Activity, ArrowUpRight, Check, Coins, Copy, ExternalLink, LoaderCircle, ShieldCheck, Wallet } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { demoReport } from "@/lib/hopout/demo";
 import { validateInput } from "@/lib/hopout/input";
@@ -25,7 +25,6 @@ async function requestQuote(input: { token: string; amount?: string; wallet?: st
   if (!response.ok || "error" in payload) throw new Error("error" in payload ? payload.error : "Quote failed.");
   return payload;
 }
-
 function number(value: number | string | null, digits = 4) {
   const parsed = typeof value === "string" ? Number(value) : value;
   if (parsed == null || !Number.isFinite(parsed)) return "—";
@@ -96,7 +95,7 @@ export default function TerminalPage() {
         required: ["token"],
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: false, untrustedContentHint: true },
+      annotations: { readOnlyHint: true, untrustedContentHint: true },
       async execute(input: unknown) {
         const value = validateInput(input);
         if (busy.current) throw new Error("An inspection is already running.");
@@ -192,162 +191,236 @@ export default function TerminalPage() {
   ];
 
   return (
-    <main className="terminal-app">
-      <header className="topline">
-        <Link className="micro-brand" href="/" aria-label="HOP OUT home"><span className="status-dot" /> HOP OUT // EXIT LIQUIDITY</Link>
-        <nav aria-label="Project links">
-          <Link href="/">HOME</Link>
-          <Link href="/#how-it-works">HOW IT WORKS</Link>
+    <main className="tool-app">
+      <header className="tool-header">
+        <Link className="tool-logo" href="/" aria-label="HOP OUT home">
+          <Image src="/hop-out-toad-cutout.png" width={42} height={42} alt="" priority />
+          <span><b>HOP OUT</b><small>EXIT LIQUIDITY DESK</small></span>
+        </Link>
+        <div className="tool-commandbar" aria-label="Terminal status">
+          <span>hop@rh:~/terminal</span><b>$</b><em>inspect --read-only --chain 4663</em><i />
+        </div>
+        <nav aria-label="Terminal navigation">
+          <span className="tool-network"><i /> RH 4663</span>
           <Link href="/docs">DOCS</Link>
-          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer"><Code2 size={15} /> SOURCE</a>
+          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">SOURCE ↗</a>
+          <Link href="/">SITE ↗</Link>
         </nav>
-        <span className="chain-label">ROBINHOOD CHAIN / 4663</span>
       </header>
 
-      <section className="workspace" id="terminal">
-        <div className="main-console">
-          <div className="console-brand">
-            <div>
-              <h1>HOP OUT</h1>
-              <p>THE READ-ONLY EXIT LIQUIDITY TERMINAL</p>
-            </div>
-            <Image src="/hop-out-toad-cutout.png" width={116} height={116} alt="HOP OUT pixel frog" priority />
+      <section className="tool-context" aria-label="Inspection context">
+        <div><span>SESSION</span><b className="live"><i /> {status}</b></div>
+        <div><span>POSITION SOURCE</span><b>{mode === "amount" ? "TOKEN AMOUNT" : "PUBLIC WALLET"}</b></div>
+        <div><span>EXECUTION</span><b>READ ONLY</b></div>
+        <div><span>OUTPUT</span><b>4 EXIT SIZES</b></div>
+      </section>
+
+      <section className="tool-layout" id="terminal">
+        <aside className="tool-setup">
+          <div className="tool-section-head">
+            <div><span>01</span><h1>BUILD THE CHECK</h1></div>
+            <b>NO CONNECT</b>
           </div>
 
-          <form className="command-panel" onSubmit={(event) => { event.preventDefault(); void inspect(); }}>
-            <div className="panel-title"><span>01 / POSITION INPUT</span><b><i /> {status}</b></div>
-            <label className="field">
-              <span>TOKEN CONTRACT</span>
-              <input value={token} onChange={(event) => setToken(event.target.value)} aria-label="Pons V2 token contract" spellCheck={false} placeholder="0x..." />
+          <form className="tool-form" onSubmit={(event) => { event.preventDefault(); void inspect(); }}>
+            <label className="tool-field">
+              <span>CHOOSE TOKEN</span>
+              <select
+                aria-label="Known token or custom contract"
+                value={token.trim().toLowerCase() === SAMPLE_TOKEN ? "copy" : "custom"}
+                onChange={(event) => {
+                  if (event.target.value === "copy") setToken(SAMPLE_TOKEN);
+                  else if (token.trim().toLowerCase() === SAMPLE_TOKEN) setToken("");
+                  setReport(null);
+                  setError("");
+                }}
+              >
+                <option value="copy">COPY — loaded example</option>
+                <option value="custom">Custom token contract</option>
+              </select>
             </label>
-            <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)} className="terminal-tabs">
-              <TabsList className="tab-switch" aria-label="Position mode">
-                <TabsTrigger value="amount">TOKEN AMOUNT</TabsTrigger>
-                <TabsTrigger value="wallet">PUBLIC WALLET</TabsTrigger>
-              </TabsList>
-              <TabsContent value="amount">
-                <label className="field"><span>AMOUNT TO TEST</span><input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" aria-label="Token amount" placeholder="1000000" /></label>
-              </TabsContent>
-              <TabsContent value="wallet">
-                <label className="field"><span>READ FULL BALANCE OF</span><input value={wallet} onChange={(event) => setWallet(event.target.value)} aria-label="Public wallet address" spellCheck={false} placeholder="0x..." /></label>
-              </TabsContent>
-            </Tabs>
-            <div className="command-actions">
-              <button className="run-button" type="submit" disabled={loading}>
-                {loading ? <LoaderCircle className="spin" size={16} /> : <Terminal size={16} />}
-                {loading ? "READING..." : "RUN INSPECTION"}
-              </button>
-              <button type="button" onClick={loadSample} disabled={loading}>RESET COPY SAMPLE</button>
-              <button type="button" onClick={loadDemo} disabled={loading}>OFFLINE DEMO</button>
+
+            <label className="tool-field">
+              <span>TOKEN CONTRACT <small>REQUIRED</small></span>
+              <input
+                value={token}
+                onChange={(event) => { setToken(event.target.value); setReport(null); }}
+                aria-label="Pons V2 token contract"
+                spellCheck={false}
+                placeholder="0x..."
+                required
+              />
+              <p>Paste any Pons V2 token contract on Robinhood Chain.</p>
+            </label>
+
+            <div className="position-source">
+              <span>POSITION SOURCE</span>
+              <Tabs value={mode} onValueChange={(value) => { setMode(value as Mode); setError(""); setReport(null); }} className="source-tabs">
+                <TabsList aria-label="Position source">
+                  <TabsTrigger value="amount"><Coins size={15} /> TOKEN AMOUNT</TabsTrigger>
+                  <TabsTrigger value="wallet"><Wallet size={15} /> PUBLIC WALLET</TabsTrigger>
+                </TabsList>
+                <TabsContent value="amount">
+                  <label className="tool-field">
+                    <span>AMOUNT TO TEST <small>EXACT QUANTITY</small></span>
+                    <input
+                      value={amount}
+                      onChange={(event) => { setAmount(event.target.value); setReport(null); }}
+                      inputMode="decimal"
+                      aria-label="Token amount"
+                      placeholder="1000000"
+                      required={mode === "amount"}
+                    />
+                    <p>Enter the number of tokens you want to test against the current exit.</p>
+                  </label>
+                </TabsContent>
+                <TabsContent value="wallet">
+                  <label className="tool-field">
+                    <span>PUBLIC WALLET ADDRESS <small>NO CONNECT</small></span>
+                    <input
+                      value={wallet}
+                      onChange={(event) => { setWallet(event.target.value); setReport(null); }}
+                      aria-label="Public wallet address"
+                      spellCheck={false}
+                      placeholder="0x..."
+                      required={mode === "wallet"}
+                    />
+                    <p>We read this token&apos;s public balance. No wallet connection, signature or approval.</p>
+                  </label>
+                </TabsContent>
+              </Tabs>
             </div>
-            {error && <div className="console-error" role="alert">ERR / {error}</div>}
+
+            <button className="tool-run" type="submit" disabled={loading}>
+              {loading ? <LoaderCircle className="spin" size={17} /> : <Activity size={17} />}
+              <span>{loading ? "READING MARKET..." : "CALCULATE EXIT"}</span>
+              <kbd>ENTER</kbd>
+            </button>
+
+            <div className="tool-quick">
+              <button type="button" onClick={loadSample} disabled={loading}>LOAD COPY SAMPLE</button>
+              <button type="button" onClick={loadDemo} disabled={loading}>OPEN OFFLINE DEMO</button>
+            </div>
+
+            {error && <div className="tool-error" role="alert"><b>INPUT ERROR</b><span>{error}</span></div>}
           </form>
 
-          <section className="result-panel" aria-live="polite">
-            <div className="panel-title">
-              <span>02 / EXIT MATRIX</span>
-              <b className={`signal ${signal.tone}`}>{signal.label}</b>
-            </div>
-            {!report ? (
-              <div className="empty-output">
-                <span className="prompt">&gt;</span>
-                <div><strong>WAITING FOR POSITION</strong><p>Run the loaded COPY sample or use the deterministic offline demo.</p></div>
+          <div className="tool-safe">
+            <ShieldCheck size={18} />
+            <div><b>READ-ONLY BY DESIGN</b><p>No browser wallet, private keys, approvals or transaction path.</p></div>
+          </div>
+        </aside>
+
+        <section className="tool-results" aria-live="polite">
+          <div className="tool-section-head results-head">
+            <div><span>02</span><h2>EXIT RECEIPT</h2></div>
+            <b className={"signal " + signal.tone}>{signal.label}</b>
+          </div>
+
+          {!report ? (
+            <div className="tool-empty">
+              <Image src="/hop-out-toad-cutout.png" width={124} height={124} alt="" />
+              <div>
+                <span>READY FOR INPUT</span>
+                <h2>SEE WHAT THE WHOLE BAG CAN ACTUALLY EXIT FOR.</h2>
+                <p>COPY and 1,000,000 tokens are loaded. Press <b>Calculate exit</b> for a live read, or switch to a public wallet.</p>
               </div>
-            ) : (
-              <>
-                <div className="token-line">
-                  <div><strong>{report.token.symbol}</strong><span>{short(report.token.address)}</span></div>
-                  <span>{report.market.phaseLabel}</span>
-                  <span>{number(report.position.amount)} TOKENS</span>
-                  <span>{isDemo ? "INVENTED DATA" : new Date(report.observedAt).toLocaleString()}</span>
-                </div>
-                <div className="value-strip">
-                  <div><span>SCREEN VALUE</span><strong>{money(full?.spotValueUsd ?? null)}</strong><small>{number(full?.spotValueQuote ?? null, 8)} {report.market.pairLabel}</small></div>
-                  <div className="value-arrow">→</div>
-                  <div><span>EST. FULL EXIT</span><strong>{money(full?.proceedsUsd ?? null)}</strong><small>{number(full?.proceedsQuote ?? null, 8)} {report.market.pairLabel}</small></div>
-                  <div className="door-loss"><span>DOOR TAKES</span><strong>{number(full?.haircutPct ?? null, 2)}%</strong></div>
-                </div>
-                <table className="exit-table">
-                  <caption className="sr-only">Estimated proceeds by sale size</caption>
-                  <thead><tr><th>SELL</th><th>TOKENS</th><th>SPOT</th><th>EST. PROCEEDS</th><th>HAIRCUT</th><th>RETAINED</th></tr></thead>
+            </div>
+          ) : (
+            <div className="tool-report">
+              <div className="report-identity">
+                <div><span>TOKEN</span><strong>${report.token.symbol}</strong><small>{short(report.token.address)}</small></div>
+                <div><span>POSITION</span><strong>{number(report.position.amount)}</strong><small>{report.position.source === "wallet" ? short(report.position.wallet || "", 6) : "manual amount"}</small></div>
+                <div><span>MARKET</span><strong>{report.market.phaseLabel}</strong><small>{report.market.venue}</small></div>
+                <div><span>OBSERVED</span><strong>{isDemo ? "DEMO" : "LIVE"}</strong><small>{new Date(report.observedAt).toLocaleTimeString()}</small></div>
+              </div>
+
+              <div className="report-summary">
+                <div><span>SCREEN VALUE</span><strong>{money(full?.spotValueUsd ?? null)}</strong><small>{number(full?.spotValueQuote ?? null, 8)} {report.market.pairLabel}</small></div>
+                <i>→</i>
+                <div className="exit-value"><span>EST. FULL EXIT</span><strong>{money(full?.proceedsUsd ?? null)}</strong><small>{number(full?.proceedsQuote ?? null, 8)} {report.market.pairLabel}</small></div>
+                <div className="haircut-value"><span>EXIT HAIRCUT</span><strong>{number(full?.haircutPct ?? null, 2)}%</strong><small>price impact + modeled fees</small></div>
+              </div>
+
+              <div className="report-table-wrap">
+                <table className="tool-exit-table">
+                  <caption className="sr-only">Estimated proceeds by independent sale size</caption>
+                  <thead><tr><th>EXIT SIZE</th><th>TESTED TOKENS</th><th>SPOT VALUE</th><th>EST. PROCEEDS</th><th>HAIRCUT</th><th>VALUE RETAINED</th></tr></thead>
                   <tbody>{report.quotes.map((quote) => {
                     const retained = quote.haircutPct == null ? 0 : Math.max(0, 100 - quote.haircutPct);
                     return <tr key={quote.fraction}>
-                      <th scope="row">{quote.fraction * 100}%</th>
+                      <th scope="row"><b>{quote.fraction * 100}%</b><small>{quote.fraction === 1 ? "FULL BAG" : "INDEPENDENT TEST"}</small></th>
                       <td>{number(quote.tokenAmount)}</td>
-                      <td>{quote.spotValueUsd == null ? `${number(quote.spotValueQuote, 8)} ${report.market.pairLabel}` : money(quote.spotValueUsd)}</td>
-                      <td>{quote.proceedsUsd == null ? `${number(quote.proceedsQuote, 8)} ${report.market.pairLabel}` : money(quote.proceedsUsd)}</td>
+                      <td>{quote.spotValueUsd == null ? number(quote.spotValueQuote, 8) + " " + report.market.pairLabel : money(quote.spotValueUsd)}</td>
+                      <td>{quote.proceedsUsd == null ? number(quote.proceedsQuote, 8) + " " + report.market.pairLabel : money(quote.proceedsUsd)}</td>
                       <td className={(quote.haircutPct ?? 0) >= 15 ? "hot" : ""}>{number(quote.haircutPct, 2)}%</td>
-                      <td><span className="retained-track"><i style={{ width: `${retained}%` }} /></span></td>
+                      <td><span className="tool-retained"><i style={{ width: String(retained) + "%" }} /></span></td>
                     </tr>;
                   })}</tbody>
                 </table>
-              </>
-            )}
-          </section>
+              </div>
 
-          {recent.length > 0 && <div className="recent-strip"><span>RECENT / LOCAL</span>{recent.map((item) =>
+              <div className="report-note">
+                <ShieldCheck size={16} />
+                <p><b>{report.method.label}.</b> {report.method.note}</p>
+              </div>
+            </div>
+          )}
+
+          {recent.length > 0 && <div className="tool-recent"><span>RECENT / THIS DEVICE</span>{recent.map((item) =>
             <button key={item.address} type="button" onClick={() => { setToken(item.address); setReport(null); }}>
               ${item.symbol} <small>{short(item.address, 4)}</small>
             </button>,
           )}</div>}
-        </div>
+        </section>
 
-        <aside className="side-console">
+        <aside className="tool-inspector">
           <section>
-            <div className="panel-title"><span>ENGINE / SESSION</span><b><i /> {status}</b></div>
-            <div className="system-log">{systemLines.map(([kind, line], index) =>
+            <div className="inspector-head"><span>ENGINE STATUS</span><b><i /> {status}</b></div>
+            <div className="tool-log">{systemLines.map(([kind, line], index) =>
               <p key={index}><b className={kind === "ERR" ? "log-error" : ""}>{kind}</b><span>{line}</span></p>,
             )}</div>
           </section>
 
           <section>
-            <div className="panel-title"><span>MARKET RECEIPT</span></div>
-            <dl className="market-data">
-              <div><dt>MODE</dt><dd>{report ? report.method.label : "awaiting inspection"}</dd></div>
+            <div className="inspector-head"><span>MARKET CONTEXT</span></div>
+            <dl className="tool-market">
+              <div><dt>METHOD</dt><dd>{report ? report.method.label : "awaiting check"}</dd></div>
               <div><dt>LIQUIDITY</dt><dd>{report ? money(report.market.liquidityUsd) : "—"}</dd></div>
               <div><dt>24H VOLUME</dt><dd>{report ? money(report.market.volume24hUsd) : "—"}</dd></div>
-              <div><dt>FEES MODELED</dt><dd>{report ? `${(report.market.totalFeeBps / 100).toFixed(2)}%` : "—"}</dd></div>
-              <div><dt>STATE ID</dt><dd>{report?.evidence.blockNumber ? `block ${report.evidence.blockNumber}` : report?.evidence.poolId ? short(report.evidence.poolId, 5) : "—"}</dd></div>
+              <div><dt>FEES MODELED</dt><dd>{report ? (report.market.totalFeeBps / 100).toFixed(2) + "%" : "—"}</dd></div>
+              <div><dt>STATE</dt><dd>{report?.evidence.blockNumber ? "block " + report.evidence.blockNumber : report?.evidence.poolId ? short(report.evidence.poolId, 5) : "—"}</dd></div>
             </dl>
           </section>
 
-          <section className="boundary-panel">
-            <div className="panel-title"><span>READ-ONLY BOUNDARY</span></div>
-            <p><b>01</b> Public RPC and market data</p>
-            <p><b>02</b> No wallet connection</p>
-            <p><b>03</b> No keys, approvals or trades</p>
-            <p><b>04</b> No executable-price promise</p>
+          <section className="inspector-boundary">
+            <div className="inspector-head"><span>SAFETY BOUNDARY</span></div>
+            <p><Check size={14} /> Public chain and market reads</p>
+            <p><Check size={14} /> Address-only wallet lookup</p>
+            <p><Check size={14} /> No signer or transaction</p>
+            <p><Check size={14} /> No executable-price promise</p>
           </section>
 
-          {report && <section className="receipt-tools">
-            <div className="panel-title"><span>RECEIPT ACTIONS</span></div>
+          {report && <section className="tool-actions">
+            <div className="inspector-head"><span>RECEIPT ACTIONS</span></div>
             <button type="button" onClick={() => void copyReceipt()}>{copied ? <Check size={15} /> : <Copy size={15} />}{copied ? "COPIED" : "COPY RECEIPT"}</button>
-            {report.links.market && <a href={report.links.market} target="_blank" rel="noreferrer">OPEN MARKET <ExternalLink size={14} /></a>}
-            {report.links.explorer && <a href={report.links.explorer} target="_blank" rel="noreferrer">OPEN EXPLORER <ExternalLink size={14} /></a>}
+            <div>
+              {report.links.market && <a href={report.links.market} target="_blank" rel="noreferrer">MARKET <ExternalLink size={13} /></a>}
+              {report.links.explorer && <a href={report.links.explorer} target="_blank" rel="noreferrer">EXPLORER <ExternalLink size={13} /></a>}
+            </div>
           </section>}
 
-          <div className="frog-note">
-            <Image src="/hop-out-toad-cutout.png" width={92} height={92} alt="" />
-            <div><span>BIG BAG.</span><strong>SMALL DOOR.</strong></div>
+          <div className="tool-mascot">
+            <Image src="/hop-out-toad-cutout.png" width={74} height={74} alt="" />
+            <p><span>BIG BAG.</span><b>CHECK THE DOOR.</b></p>
           </div>
         </aside>
       </section>
 
-      <section className="method" id="method">
-        <div className="method-head"><span>HOW IT WORKS</span><h2>ONE BAG. FOUR EXITS.</h2><p>HOP OUT reads public state, calculates independent 10%, 25%, 50% and 100% sales, then returns a timestamped receipt.</p></div>
-        <div className="method-grid">
-          <article><b>01</b><h3>READ THE BAG</h3><p>Enter an amount or use a public address balance. Nothing is connected or signed.</p></article>
-          <article><b>02</b><h3>READ THE DOOR</h3><p>Curve launches use pinned contract reserves. Graduated launches use canonical published pool depth.</p></article>
-          <article><b>03</b><h3>SHOW THE GAP</h3><p>Compare spot value with estimated proceeds, including modeled fees and price impact.</p></article>
-        </div>
-        <div className="method-warning"><ShieldCheck size={18} /><p><strong>ESTIMATE, NOT EXECUTION.</strong> Pool state can move. Graduated-pool results are depth approximations, not Uniswap v4 executable quotes or financial advice.</p></div>
-      </section>
-
-      <footer>
-        <span>HOP OUT / 2026</span>
-        <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">OPEN SOURCE <ArrowUpRight size={14} /></a>
-        <span>NO SIGNER / NO TRANSACTION PATH</span>
+      <footer className="tool-footer">
+        <span>HOP OUT / READ-ONLY EXIT DESK</span>
+        <Link href="/docs">HOW IT WORKS <ArrowUpRight size={13} /></Link>
+        <span>NO WALLET CONNECT / NO TRADES</span>
       </footer>
     </main>
   );
