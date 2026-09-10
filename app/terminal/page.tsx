@@ -197,7 +197,8 @@ export default function TerminalPage() {
         <Link className="micro-brand" href="/" aria-label="HOP OUT home"><span className="status-dot" /> HOP OUT // EXIT LIQUIDITY</Link>
         <nav aria-label="Project links">
           <Link href="/">HOME</Link>
-          <a href="#method">METHOD</a>
+          <Link href="/#how-it-works">HOW IT WORKS</Link>
+          <Link href="/docs">DOCS</Link>
           <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer"><Code2 size={15} /> SOURCE</a>
         </nav>
         <span className="chain-label">ROBINHOOD CHAIN / 4663</span>

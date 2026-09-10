@@ -36,7 +36,7 @@ A styled documentation view of an actual CLI result. The capture time is printed
 | Graduated pool | Canonical published depth with an explicit approximation label |
 | Verification | Provider fixtures, input checks, CLI tests, Node 22/24 CI configuration |
 
-The [hosted preview](https://hop-out-rh.nikitaguguman.chatgpt.site) currently requires owner access. Anyone can run the repository locally. No HOP OUT token contract has been deployed by this repository.
+The [hosted preview](https://hop-out-rh.nikitaguguman.chatgpt.site) currently requires owner access. Read the [web docs](https://hop-out-rh.nikitaguguman.chatgpt.site/docs) or run the repository locally. No HOP OUT token contract has been deployed by this repository.
 
 ## Start in one minute
 

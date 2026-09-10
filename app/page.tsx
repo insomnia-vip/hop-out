@@ -19,7 +19,8 @@ export default function Home() {
         </Link>
         <nav aria-label="Landing navigation">
           <a href="#product">THE PRODUCT</a>
-          <a href="#method">THE TEST</a>
+          <a href="#how-it-works">HOW IT WORKS</a>
+          <Link href="/docs">DOCS</Link>
           <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB ↗</a>
         </nav>
         <Link className="nav-terminal" href="/terminal">OPEN TERMINAL <ArrowRight size={15} /></Link>
@@ -41,20 +42,25 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="door-stage" aria-label="Illustrative HOP OUT exit test">
-          <div className="stage-top"><span>HOP OUT / DOOR TEST</span><b>ILLUSTRATIVE</b></div>
+        <div className="door-stage" aria-label="Animated HOP OUT frog testing four exit sizes">
+          <div className="stage-top"><span>FROG RUN / EXIT ROUTE</span><b>LOOP ACTIVE</b></div>
           <div className="frog-bay">
-            <div className="bag-tag"><span>SCREEN SAYS</span><strong>$24,800</strong></div>
-            <Image src="/hop-out-toad.png" width={210} height={210} alt="HOP OUT pixel frog carrying a bag toward the exit" priority />
+            <div className="hop-points" aria-hidden="true">
+              {checks.map(([size], index) => <span key={size} className={index === 3 ? "active" : ""}><b>{size}</b><i /></span>)}
+            </div>
+            <div className="jumping-frog">
+              <Image src="/hop-out-toad.png" width={190} height={190} alt="HOP OUT pixel frog jumping toward the exit" priority />
+              <span>TESTING THE DOOR</span>
+            </div>
             <div className="floor-grid" />
           </div>
           <div className="exit-door">
-            <span>ACTUAL DOOR</span>
-            <strong>$14,930</strong>
-            <small>−39.8% TO EXIT</small>
+            <span>EXIT GATE</span>
+            <strong>DOOR 04</strong>
+            <small>FULL BAG CHECK</small>
             <i>→</i>
           </div>
-          <div className="stage-bottom"><span>QUOTE ≠ EXIT</span><b>MEASURE BEFORE YOU MOVE</b></div>
+          <div className="stage-bottom"><span>HOP 01—04</span><b>10 / 25 / 50 / 100%</b></div>
         </div>
       </section>
 
@@ -91,9 +97,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="landing-method" id="method">
+      <section className="landing-method" id="how-it-works">
         <div className="method-title">
-          <p className="section-index">02 / THE TEST</p>
+          <p className="section-index">02 / HOW IT WORKS</p>
           <h2>ONE POSITION.<br />FOUR DOORS.</h2>
         </div>
         <div className="landing-steps">
@@ -119,7 +125,7 @@ export default function Home() {
       <footer className="landing-footer">
         <span>HOP OUT / 2026</span>
         <p><ShieldCheck size={15} /> ESTIMATES, NOT EXECUTION OR FINANCIAL ADVICE</p>
-        <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">OPEN SOURCE ↗</a>
+        <div><Link href="/docs">DOCS</Link><a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div>
       </footer>
     </main>
   );

@@ -1,0 +1,89 @@
+import Link from "next/link";
+import { ArrowRight, Code2, ShieldCheck, Terminal } from "lucide-react";
+
+const exits = [
+  ["10%", "First hop", "A small sale that establishes the easy-exit baseline."],
+  ["25%", "Real size", "A larger sale that begins to expose price impact."],
+  ["50%", "Tight door", "Half the position tested independently against the same state."],
+  ["100%", "Full bag", "The complete position tested as one exit—not four partial fills."],
+];
+
+export default function DocsPage() {
+  return (
+    <main className="docs-page">
+      <header className="landing-nav">
+        <Link className="landing-brand" href="/"><span className="status-dot" /> HOP OUT <i>{"//"}</i> DOCS</Link>
+        <nav aria-label="Documentation navigation">
+          <Link href="/#how-it-works">HOW IT WORKS</Link>
+          <Link href="/terminal">TERMINAL</Link>
+          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB ↗</a>
+        </nav>
+        <Link className="nav-terminal" href="/terminal">OPEN TERMINAL <ArrowRight size={15} /></Link>
+      </header>
+
+      <div className="docs-shell">
+        <aside className="docs-rail">
+          <span>CONTENTS</span>
+          <a href="#overview">01 / OVERVIEW</a>
+          <a href="#input">02 / INPUT</a>
+          <a href="#receipt">03 / RECEIPT</a>
+          <a href="#method">04 / METHOD</a>
+          <a href="#safety">05 / SAFETY</a>
+        </aside>
+
+        <article className="docs-main">
+          <section className="docs-intro" id="overview">
+            <p className="section-index">HOP OUT / DOCUMENTATION</p>
+            <h1>READ THE DOOR.<br />THEN DECIDE.</h1>
+            <p>HOP OUT is a read-only exit-liquidity inspector for Pons V2 tokens on Robinhood Chain. It compares a position&apos;s spot value with estimated proceeds at four independent sale sizes.</p>
+            <Link className="primary-cta" href="/terminal"><Terminal size={17} /> RUN THE TOOL <ArrowRight size={17} /></Link>
+          </section>
+
+          <section className="docs-section" id="input">
+            <div className="docs-number">02</div>
+            <div>
+              <h2>INPUT</h2>
+              <p>Provide a token contract plus either a token amount or a public wallet address. A wallet address is used only to read its public token balance.</p>
+              <dl className="docs-spec">
+                <div><dt>TOKEN</dt><dd>Pons V2 contract address</dd></div>
+                <div><dt>AMOUNT</dt><dd>Exact token quantity to test</dd></div>
+                <div><dt>WALLET</dt><dd>Optional public balance source</dd></div>
+              </dl>
+            </div>
+          </section>
+
+          <section className="docs-section" id="receipt">
+            <div className="docs-number">03</div>
+            <div>
+              <h2>THE RECEIPT</h2>
+              <p>Every result keeps the observed market state, method label, fee assumptions, proceeds estimate, and haircut visible together.</p>
+              <div className="docs-exits">
+                {exits.map(([size, name, copy]) => <div key={size}><b>{size}</b><span>{name}</span><p>{copy}</p></div>)}
+              </div>
+            </div>
+          </section>
+
+          <section className="docs-section" id="method">
+            <div className="docs-number">04</div>
+            <div>
+              <h2>METHOD</h2>
+              <p>Curve launches use block-pinned on-chain reserves and fee reads. Graduated launches use the canonical published pool and a clearly labelled market-depth approximation.</p>
+              <div className="docs-formula">
+                <span>SCREEN VALUE</span><b>−</b><span>EST. PROCEEDS</span><b>=</b><span>EXIT HAIRCUT</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="docs-section docs-safety" id="safety">
+            <div className="docs-number">05</div>
+            <div>
+              <h2>READ-ONLY BOUNDARY</h2>
+              <p><ShieldCheck size={17} /> No wallet connection, signer, approval, transaction path, or custody. Estimates can change as pool state moves and are not executable quotes or financial advice.</p>
+              <a className="text-link" href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer"><Code2 size={16} /> READ THE SOURCE</a>
+            </div>
+          </section>
+        </article>
+      </div>
+    </main>
+  );
+}
