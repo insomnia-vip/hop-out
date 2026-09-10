@@ -136,7 +136,7 @@ export default function Home() {
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="HOP OUT home"><span className="brand-mark">H</span><span>HOP OUT</span></a>
-        <nav aria-label="Primary navigation"><a href="#terminal">TERMINAL</a><a href="#method">METHOD</a><a href="https://github.com" target="_blank" rel="noreferrer">GITHUB <ArrowUpRight size={13} /></a></nav>
+        <nav aria-label="Primary navigation"><a href="#terminal">TERMINAL</a><a href="#method">METHOD</a><a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB <ArrowUpRight size={13} /></a></nav>
         <span className="network-pill"><i /> ROBINHOOD CHAIN</span>
       </header>
 
