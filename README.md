@@ -20,7 +20,7 @@ HOP OUT takes a token and position, then measures the difference at **10%, 25%, 
 
 ### Read the pool, not the post
 
-![HOP OUT live exit receipt: a timestamped COPY position, four sale sizes, estimated proceeds and source details](assets/readme/live-receipt.svg)
+![HOP OUT compact console receipt: captured COPY liquidity, position, estimated proceeds and haircut](assets/readme/terminal-snapshot.svg)
 
 A styled documentation view of an actual CLI result. The capture time is printed inside the image; it is a historical estimate, not a current quote. [Full captured data →](assets/readme/live-snapshot.json)
 
@@ -53,9 +53,9 @@ pnpm demo
 
 ### Same bag. Four different jumps.
 
-![HOP OUT exit ladder: synthetic 10, 25, 50 and 100 percent sales, with retained value and price-impact haircut](assets/readme/exit-ladder.svg)
+![HOP OUT dense terminal study: 24 independent synthetic sale scenarios with a selected position and four exit sizes](assets/readme/terminal-desk.svg)
 
-An illustrated view of the offline demo. Lime shows estimated proceeds relative to spot; orange shows the difference. Invented POND reserves make the effect easy to reproduce without a wallet or live token.
+A static terminal-style study using the offline demo's reserves and calculation engine. The 24 rows are independent hypothetical sale sizes, not trades or a live feed. Lime shows estimated proceeds relative to spot; orange shows the difference. The selected 500,000 POND bag reproduces `pnpm demo`. This dense layout is documentation artwork, not an additional interactive CLI mode.
 
 Open the web terminal with:
 

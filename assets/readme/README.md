@@ -8,6 +8,8 @@ These are styled documentation views of HOP OUT's real outputs, not screenshots 
 | `exit-ladder.svg` | Deterministic synthetic `demoReport()` |
 | `doctor.svg` | Actual provider responses and measured latency in `doctor-snapshot.json` |
 | `json-export.svg` | Subset of the synthetic JSON export, including the 100% sale row |
+| `terminal-snapshot.svg` | Compact console layout of the existing historical COPY snapshot |
+| `terminal-desk.svg` | Dense offline study: 24 independent sale sizes using the demo's 1,000,000 POND / 10 ETH reserves and 250 bps fee |
 
 Captured data is historical, not a current price or uptime guarantee. COPY is an example token, not a HOP OUT contract. DEMO pictures never represent a deployed asset. Image titles, descriptions and nearby README captions preserve these distinctions.
 
@@ -20,7 +22,7 @@ pnpm build:cli
 node scripts/render-readme.mjs
 ```
 
-This regenerates all four SVGs from the committed snapshots and the offline demo. No network request is made.
+This regenerates all six SVGs from the committed snapshots and the offline demo. No network request is made. The two dense layouts are defined in `scripts/readme-terminal-views.mjs`; the original four illustrations remain available here.
 
 To intentionally refresh the two public-data captures and all illustrations:
 

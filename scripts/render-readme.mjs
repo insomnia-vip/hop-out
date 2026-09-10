@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import assert from "node:assert/strict";
 import { demoReport } from "../.hopout-build/demo.js";
+import { terminalViews } from "./readme-terminal-views.mjs";
 
 // Documentation artwork, not a screenshot of a separate dashboard or TUI.
 // SVG is deliberate: commands remain crisp at any GitHub zoom level.
@@ -171,6 +172,7 @@ exported += text(778, 330, "TEXT", 28) + text(778, 359, "Read it in your termina
   + text(36, 800, "DEMO data / excerpt shows the 100% row; the full export contains all four exits.", 16, c.dim);
 
 const images = {
+  ...terminalViews({ live, demo, text, wordmark, esc }),
   "live-receipt.svg": frame(720, "hop-out / inspect", "CAPTURED LIVE DATA / READ ONLY", receipt, `Historical COPY exit estimate captured ${utc(live.observedAt)}: spot ${usd(full.spotValueUsd)}, estimated full exit ${usd(full.proceedsUsd)}. Not an executable quote.`),
   "exit-ladder.svg": frame(645, "hop-out / exit ladder", "SYNTHETIC DEMO / NO NETWORK", ladder, "Four synthetic sale sizes, 10, 25, 50 and 100 percent, with estimated proceeds and haircut. Larger sales lose more to price impact."),
   "doctor.svg": frame(535, "hop-out / doctor", "CAPTURED PROVIDER CHECK", diagnostic, `Provider diagnostics captured ${utc(doctor.capturedAt)}. ${doctor.checks.map((check) => `${check.name}: ${check.ok ? "OK" : "FAIL"}, ${check.latencyMs} milliseconds`).join("; ")}.`),
