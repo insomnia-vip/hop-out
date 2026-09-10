@@ -211,7 +211,7 @@ export default function TerminalPage() {
               <h1>HOP OUT</h1>
               <p>THE READ-ONLY EXIT LIQUIDITY TERMINAL</p>
             </div>
-            <Image src="/hop-out-toad.png" width={116} height={116} alt="HOP OUT pixel frog" priority />
+            <Image src="/hop-out-toad-cutout.png" width={116} height={116} alt="HOP OUT pixel frog" priority />
           </div>
 
           <form className="command-panel" onSubmit={(event) => { event.preventDefault(); void inspect(); }}>
@@ -328,7 +328,7 @@ export default function TerminalPage() {
           </section>}
 
           <div className="frog-note">
-            <Image src="/hop-out-toad.png" width={92} height={92} alt="" />
+            <Image src="/hop-out-toad-cutout.png" width={92} height={92} alt="" />
             <div><span>BIG BAG.</span><strong>SMALL DOOR.</strong></div>
           </div>
         </aside>

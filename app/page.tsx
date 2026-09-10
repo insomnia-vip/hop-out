@@ -21,10 +21,21 @@ export default function Home() {
           <a href="#product">THE PRODUCT</a>
           <a href="#how-it-works">HOW IT WORKS</a>
           <Link href="/docs">DOCS</Link>
-          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB ↗</a>
         </nav>
-        <Link className="nav-terminal" href="/terminal">OPEN TERMINAL <ArrowRight size={15} /></Link>
+        <div className="site-actions">
+          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB ↗</a>
+          <a href="https://x.com/search?q=%24HOPOUT" target="_blank" rel="noreferrer" title="Search $HOPOUT on X">TWITTER ↗</a>
+          <button className="buy-token" type="button" disabled title="Contract address has not been published">BUY $HOP OUT <span>SOON</span></button>
+        </div>
       </header>
+      <div className="token-rail">
+        <div>
+          <span className="token-live"><b>$HOP OUT</b> PRE-LAUNCH</span>
+          <i />
+          <span className="token-ca"><small>CA</small><code>PENDING — NOT PUBLISHED</code></span>
+          <div className="token-rail-actions"><button type="button" disabled>COPY CA</button><button type="button" disabled>BUY ON PONS ↗</button></div>
+        </div>
+      </div>
 
       <section className="landing-hero">
         <div className="hero-copy">
@@ -49,7 +60,7 @@ export default function Home() {
               {checks.map(([size], index) => <span key={size} className={index === 3 ? "active" : ""}><b>{size}</b><i /></span>)}
             </div>
             <div className="jumping-frog">
-              <Image src="/hop-out-toad.png" width={190} height={190} alt="HOP OUT pixel frog jumping toward the exit" priority />
+              <Image src="/hop-out-toad-cutout.png" width={190} height={190} alt="HOP OUT pixel frog jumping toward the exit" priority />
               <span>TESTING THE DOOR</span>
             </div>
             <div className="floor-grid" />
@@ -115,7 +126,7 @@ export default function Home() {
 
       <section className="final-callout">
         <div>
-          <Image src="/hop-out-toad.png" width={112} height={112} alt="" />
+          <Image src="/hop-out-toad-cutout.png" width={112} height={112} alt="" />
           <p><Zap size={16} /> THE DOOR IS OPEN</p>
         </div>
         <h2>KNOW THE EXIT<br />BEFORE THE CROWD.</h2>

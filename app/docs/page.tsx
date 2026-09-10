@@ -16,10 +16,21 @@ export default function DocsPage() {
         <nav aria-label="Documentation navigation">
           <Link href="/#how-it-works">HOW IT WORKS</Link>
           <Link href="/terminal">TERMINAL</Link>
-          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB ↗</a>
         </nav>
-        <Link className="nav-terminal" href="/terminal">OPEN TERMINAL <ArrowRight size={15} /></Link>
+        <div className="site-actions">
+          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB ↗</a>
+          <a href="https://x.com/search?q=%24HOPOUT" target="_blank" rel="noreferrer" title="Search $HOPOUT on X">TWITTER ↗</a>
+          <button className="buy-token" type="button" disabled title="Contract address has not been published">BUY $HOP OUT <span>SOON</span></button>
+        </div>
       </header>
+      <div className="token-rail">
+        <div>
+          <span className="token-live"><b>$HOP OUT</b> PRE-LAUNCH</span>
+          <i />
+          <span className="token-ca"><small>CA</small><code>PENDING — NOT PUBLISHED</code></span>
+          <div className="token-rail-actions"><button type="button" disabled>COPY CA</button><button type="button" disabled>BUY ON PONS ↗</button></div>
+        </div>
+      </div>
 
       <div className="docs-shell">
         <aside className="docs-rail">
