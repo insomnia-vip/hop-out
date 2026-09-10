@@ -18,6 +18,12 @@ A wallet multiplies your bag by the last traded price. A pool prices the entire 
 
 HOP OUT takes a token and position, then measures the difference at **10%, 25%, 50%, and 100%** of the bag. The frog is the meme; the exit receipt is the product.
 
+### Read the pool, not the post
+
+![HOP OUT live exit receipt: a timestamped COPY position, four sale sizes, estimated proceeds and source details](assets/readme/live-receipt.svg)
+
+A styled documentation view of an actual CLI result. The capture time is printed inside the image; it is a historical estimate, not a current quote. [Full captured data →](assets/readme/live-snapshot.json)
+
 ## Available in v0.2
 
 | Surface | What works |
@@ -43,7 +49,15 @@ pnpm install --frozen-lockfile
 pnpm demo
 ```
 
-`demo` compiles the CLI and prints a reproducible, synthetic exit receipt. It does not fetch live data. Open the web terminal with:
+`demo` compiles the CLI and prints a reproducible, synthetic exit receipt. It does not fetch live data.
+
+### Same bag. Four different jumps.
+
+![HOP OUT exit ladder: synthetic 10, 25, 50 and 100 percent sales, with retained value and price-impact haircut](assets/readme/exit-ladder.svg)
+
+An illustrated view of the offline demo. Lime shows estimated proceeds relative to spot; orange shows the difference. Invented POND reserves make the effect easy to reproduce without a wallet or live token.
+
+Open the web terminal with:
 
 ```bash
 pnpm dev
@@ -57,28 +71,33 @@ COPY is a supported example, not the HOP OUT contract:
 
 ```bash
 pnpm hop inspect --token 0xac79255f6f404eba14f316e8669d76573a2d7b1e --amount 1000000
-pnpm doctor
 ```
 
-An observed result from **2026-09-10 17:09:13 UTC** (historical, not a current quote):
+The receipt near the top shows a captured run of this command. Run it again for a fresh snapshot; live prices, depth and fees can change.
 
-```text
-LIVE / COPY / Published pool-depth estimate
-Position: 1,000,000 COPY
-Screen value: 0.02997 ETH ($73.34)
-Est. exit:   0.02905822 ETH ($71.1088)
-
-Sell       Haircut
-10%          2.54%
-25%          2.62%
-50%          2.76%
-100%         3.04%
-```
-
-Inspect a public balance or export the same report:
+To inspect a public balance instead of a manually entered amount:
 
 ```bash
 pnpm hop inspect --token <TOKEN_ADDRESS> --wallet <PUBLIC_WALLET>
+```
+
+### Check the sources
+
+![HOP OUT doctor: captured Robinhood RPC, Pons API and DexScreener checks, with measured latency and read-only boundaries](assets/readme/doctor.svg)
+
+The doctor checks public provider responses and the RPC chain ID. These are measured results from the printed capture time, not a continuous uptime monitor. [Captured checks →](assets/readme/doctor-snapshot.json)
+
+```bash
+pnpm doctor
+```
+
+## Receipts that travel
+
+![HOP OUT JSON export: a synthetic receipt excerpt with provenance, position and the 100 percent exit row](assets/readme/json-export.svg)
+
+The same report can be read in a terminal, consumed as JSON, or shared as Markdown. The picture shows an excerpt of the real demo schema; the complete export includes all four sale sizes.
+
+```bash
 pnpm hop inspect --token <TOKEN_ADDRESS> --amount 1000000 --format json --output receipt.json
 pnpm hop demo --format markdown --output demo.md
 ```
@@ -116,7 +135,7 @@ lib/hopout/
   demo.ts               Isolated synthetic example
   receipt.ts            Plain-text and Markdown rendering
 app/                    Browser terminal and read-only API
-assets/                 Original HOP OUT wordmark
+assets/                 Wordmark, terminal illustrations and source captures
 public/                 Pixel frog mascot
 docs/                   Methodology, commands, testing and launch kit
 test/                   Deterministic fixtures and CLI tests
@@ -132,6 +151,8 @@ pnpm check
 ```
 
 See [testing](docs/TESTING.md), [contributing](CONTRIBUTING.md), [changelog](CHANGELOG.md), and [security](SECURITY.md). WebMCP registration is included for compatible browsers; the core UI and CLI do not depend on it.
+
+The terminal images are documentation illustrations of existing outputs, not separate dashboard modes. [Reproduce or refresh the images →](assets/readme/README.md)
 
 ## Boundaries and sources
 

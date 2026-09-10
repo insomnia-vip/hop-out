@@ -1,0 +1,81 @@
+{
+  "observedAt": "2026-09-10T17:24:39.165Z",
+  "evidence": {
+    "mode": "live",
+    "blockNumber": null,
+    "poolId": "0x827534609c9f74fc7d950b91e268d22419611e8a1d7a557dec6716cba11ee605",
+    "sources": [
+      "https://api.ponsportal.fun",
+      "https://api.dexscreener.com/latest/dex/tokens"
+    ]
+  },
+  "token": {
+    "address": "0xac79255f6f404eba14f316e8669d76573a2d7b1e",
+    "name": "COPY",
+    "symbol": "COPY",
+    "decimals": 18
+  },
+  "position": {
+    "source": "amount",
+    "wallet": null,
+    "amount": "1000000"
+  },
+  "market": {
+    "phase": 2,
+    "phaseLabel": "PoolCreated",
+    "venue": "uniswap-v4-depth",
+    "pairLabel": "ETH",
+    "priceInPair": 2.836e-8,
+    "priceUsd": 0.00006956,
+    "liquidityUsd": 24183.69,
+    "volume24hUsd": 1136951.25,
+    "totalFeeBps": 250
+  },
+  "method": {
+    "precision": "market-depth-estimate",
+    "label": "Published pool-depth estimate",
+    "note": "Constant-product approximation of published canonical pool depth, with a 1% platform-fee assumption plus reported creator and LP fees. Not a Uniswap v4 executable quote; concentrated liquidity, gas and changing state can alter proceeds."
+  },
+  "quotes": [
+    {
+      "fraction": 0.1,
+      "tokenAmount": "100000",
+      "spotValueQuote": 0.002836,
+      "proceedsQuote": 0.0027640740005980017,
+      "spotValueUsd": 6.956,
+      "proceedsUsd": 6.779583479604972,
+      "haircutPct": 2.5361776940055814
+    },
+    {
+      "fraction": 0.25,
+      "tokenAmount": "250000",
+      "spotValueQuote": 0.00709,
+      "proceedsQuote": 0.006904379387125871,
+      "spotValueUsd": 17.39,
+      "proceedsUsd": 16.934718976321427,
+      "haircutPct": 2.618062240819874
+    },
+    {
+      "fraction": 0.5,
+      "tokenAmount": "500000",
+      "spotValueQuote": 0.01418,
+      "proceedsQuote": 0.013789450022225041,
+      "spotValueUsd": 34.78,
+      "proceedsUsd": 33.82207840430092,
+      "haircutPct": 2.754231154971498
+    },
+    {
+      "fraction": 1,
+      "tokenAmount": "1000000",
+      "spotValueQuote": 0.02836,
+      "proceedsQuote": 0.02750198812533632,
+      "spotValueUsd": 69.56,
+      "proceedsUsd": 67.45551107187569,
+      "haircutPct": 3.0254297414093134
+    }
+  ],
+  "links": {
+    "explorer": "https://robinhoodchain.blockscout.com/token/0xaC79255f6F404EBA14F316e8669D76573A2D7b1E",
+    "market": "https://dexscreener.com/robinhood/0x827534609c9f74fc7d950b91e268d22419611e8a1d7a557dec6716cba11ee605"
+  }
+}

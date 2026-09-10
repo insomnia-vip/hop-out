@@ -1,0 +1,21 @@
+{
+  "capturedAt": "2026-09-10T17:24:39.175Z",
+  "chainId": 4663,
+  "checks": [
+    {
+      "name": "Robinhood RPC",
+      "ok": true,
+      "latencyMs": 231
+    },
+    {
+      "name": "Pons API",
+      "ok": true,
+      "latencyMs": 272
+    },
+    {
+      "name": "DexScreener",
+      "ok": true,
+      "latencyMs": 30
+    }
+  ]
+}
