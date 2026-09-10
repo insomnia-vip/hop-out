@@ -9,6 +9,7 @@ import { demoReport } from "@/lib/hopout/demo";
 import { validateInput } from "@/lib/hopout/input";
 import { renderReceipt } from "@/lib/hopout/receipt";
 import type { ExitReport, QuoteError } from "@/lib/hopout/types";
+import { PROJECT_LINKS } from "@/lib/hopout/links";
 
 const SAMPLE_TOKEN = "0xac79255f6f404eba14f316e8669d76573a2d7b1e";
 const SAMPLE_AMOUNT = "1000000";
@@ -203,7 +204,7 @@ export default function TerminalPage() {
         <nav aria-label="Terminal navigation">
           <span className="tool-network"><i /> RH 4663</span>
           <Link href="/docs">DOCS</Link>
-          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">SOURCE ↗</a>
+          <a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">SOURCE ↗</a>
           <Link href="/">SITE ↗</Link>
         </nav>
       </header>
@@ -419,7 +420,7 @@ export default function TerminalPage() {
 
       <footer className="tool-footer">
         <span>HOP OUT / READ-ONLY EXIT DESK</span>
-        <Link href="/docs">HOW IT WORKS <ArrowUpRight size={13} /></Link>
+        <Link href="/#how-it-works">HOW IT WORKS <ArrowUpRight size={13} /></Link>
         <span>NO WALLET CONNECT / NO TRADES</span>
       </footer>
     </main>

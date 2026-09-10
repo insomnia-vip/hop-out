@@ -229,7 +229,7 @@ footer span:last-child { justify-self:end; }
   letter-spacing:.04em;
 }
 .buy-token span { padding-left:8px; border-left:1px solid rgba(7,16,6,.3); font-size:9px; }
-.buy-token:disabled { opacity:1; cursor:not-allowed; }
+.buy-token:hover { background:var(--yellow); }
 .nav-terminal {
   min-height:34px;
   padding:0 13px;
@@ -260,17 +260,20 @@ footer span:last-child { justify-self:end; }
 .token-ca small { color:var(--faint); font-size:9px; }
 .token-ca code { color:#9fad97; font-family:inherit; font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .token-rail-actions { margin-left:auto; display:flex; align-items:center; gap:8px; }
-.token-rail-actions button {
+.token-rail-actions a {
   min-height:27px;
   padding:0 10px;
+  display:flex;
+  align-items:center;
   border:1px solid #31422c;
   background:#080e07;
   color:#84907e;
   font-size:9px;
   font-weight:900;
 }
-.token-rail-actions button:last-child { border-color:var(--acid); background:var(--acid); color:#071006; }
-.token-rail-actions button:disabled { cursor:not-allowed; }
+.token-rail-actions a:hover { border-color:var(--acid); color:var(--acid); }
+.token-rail-actions a:last-child { border-color:var(--acid); background:var(--acid); color:#071006; }
+.token-rail-actions a:last-child:hover { background:var(--yellow); }
 
 .landing-hero {
   width:min(1680px,100%);
@@ -755,8 +758,8 @@ footer span:last-child { justify-self:end; }
   .buy-token { min-height:32px; padding:0 9px; font-size:10px; }
   .token-rail { padding:0 14px; }
   .token-ca code { max-width:120px; }
-  .token-rail-actions button:first-child { display:none; }
-  .token-rail-actions button:last-child { padding:0 8px; }
+  .token-rail-actions a:first-child { display:none; }
+  .token-rail-actions a:last-child { padding:0 8px; }
   .nav-terminal { min-height:32px; padding:0 10px; font-size:11px; }
   .landing-hero { border-left:0; border-right:0; min-height:auto; }
   .hero-copy { min-height:auto; padding:36px 17px 22px; }

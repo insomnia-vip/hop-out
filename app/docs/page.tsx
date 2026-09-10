@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Code2, ShieldCheck, Terminal } from "lucide-react";
+import { PROJECT_LINKS } from "@/lib/hopout/links";
 
 const exits = [
   ["10%", "First hop", "A small sale that establishes the easy-exit baseline."],
@@ -18,9 +19,9 @@ export default function DocsPage() {
           <Link href="/terminal">TERMINAL</Link>
         </nav>
         <div className="site-actions">
-          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB ↗</a>
-          <a href="https://x.com/search?q=%24HOPOUT" target="_blank" rel="noreferrer" title="Search $HOPOUT on X">TWITTER ↗</a>
-          <button className="buy-token" type="button" disabled title="Contract address has not been published">BUY $HOP OUT <span>SOON</span></button>
+          <a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">GITHUB ↗</a>
+          <a href={PROJECT_LINKS.twitter} target="_blank" rel="noreferrer" title="Follow $HOPOUT launch status on X">TWITTER ↗</a>
+          <a className="buy-token" href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer" title="Open Pons and verify the official contract before trading">BUY $HOP OUT <span>↗</span></a>
         </div>
       </header>
       <div className="token-rail">
@@ -28,7 +29,10 @@ export default function DocsPage() {
           <span className="token-live"><b>$HOP OUT</b> PRE-LAUNCH</span>
           <i />
           <span className="token-ca"><small>CA</small><code>PENDING — NOT PUBLISHED</code></span>
-          <div className="token-rail-actions"><button type="button" disabled>COPY CA</button><button type="button" disabled>BUY ON PONS ↗</button></div>
+          <div className="token-rail-actions">
+            <a href={PROJECT_LINKS.twitter} target="_blank" rel="noreferrer">FOLLOW LAUNCH ↗</a>
+            <a href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer">OPEN PONS ↗</a>
+          </div>
         </div>
       </div>
 
@@ -90,7 +94,7 @@ export default function DocsPage() {
             <div>
               <h2>READ-ONLY BOUNDARY</h2>
               <p><ShieldCheck size={17} /> No wallet connection, signer, approval, transaction path, or custody. Estimates can change as pool state moves and are not executable quotes or financial advice.</p>
-              <a className="text-link" href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer"><Code2 size={16} /> READ THE SOURCE</a>
+              <a className="text-link" href={PROJECT_LINKS.github} target="_blank" rel="noreferrer"><Code2 size={16} /> READ THE SOURCE</a>
             </div>
           </section>
         </article>
