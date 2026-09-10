@@ -1,7 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-html-link-for-pages -- Vinext Link navigation throws at runtime; hard navigations are intentional. */
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, ArrowUpRight, Check, Coins, Copy, ExternalLink, LoaderCircle, ShieldCheck, Wallet } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -194,18 +194,18 @@ export default function TerminalPage() {
   return (
     <main className="tool-app">
       <header className="tool-header">
-        <Link className="tool-logo" href="/" aria-label="HOP OUT home">
+        <a className="tool-logo" href="/" aria-label="HOP OUT home">
           <Image src="/hop-out-toad-cutout.png" width={42} height={42} alt="" priority />
           <span><b>HOP OUT</b><small>EXIT LIQUIDITY DESK</small></span>
-        </Link>
+        </a>
         <div className="tool-commandbar" aria-label="Terminal status">
           <span>hop@rh:~/terminal</span><b>$</b><em>inspect --read-only --chain 4663</em><i />
         </div>
         <nav aria-label="Terminal navigation">
           <span className="tool-network"><i /> RH 4663</span>
-          <Link href="/docs">DOCS</Link>
+          <a href="/docs">DOCS</a>
           <a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">SOURCE ↗</a>
-          <Link href="/">SITE ↗</Link>
+          <a href="/">SITE ↗</a>
         </nav>
       </header>
 
@@ -420,7 +420,7 @@ export default function TerminalPage() {
 
       <footer className="tool-footer">
         <span>HOP OUT / READ-ONLY EXIT DESK</span>
-        <Link href="/#how-it-works">HOW IT WORKS <ArrowUpRight size={13} /></Link>
+        <a href="/#how-it-works">HOW IT WORKS <ArrowUpRight size={13} /></a>
         <span>NO WALLET CONNECT / NO TRADES</span>
       </footer>
     </main>

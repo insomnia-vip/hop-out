@@ -1,5 +1,5 @@
+/* eslint-disable @next/next/no-html-link-for-pages -- Vinext Link navigation throws at runtime; hard navigations are intentional. */
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowRight, Code2, ShieldCheck, Terminal, Zap } from "lucide-react";
 import { PROJECT_LINKS } from "@/lib/hopout/links";
 
@@ -14,14 +14,14 @@ export default function Home() {
   return (
     <main className="landing">
       <header className="landing-nav">
-        <Link className="landing-brand" href="/" aria-label="HOP OUT home">
+        <a className="landing-brand" href="/" aria-label="HOP OUT home">
           <span className="status-dot" />
           HOP OUT <i>{"//"}</i> RH CHAIN
-        </Link>
+        </a>
         <nav aria-label="Landing navigation">
           <a href="#product">THE PRODUCT</a>
           <a href="#how-it-works">HOW IT WORKS</a>
-          <Link href="/docs">DOCS</Link>
+          <a href="/docs">DOCS</a>
         </nav>
         <div className="site-actions">
           <a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">GITHUB ↗</a>
@@ -49,7 +49,7 @@ export default function Home() {
             Your chart prices one token. HOP OUT tests the whole position against the liquidity that has to absorb it.
           </p>
           <div className="hero-actions">
-            <Link className="primary-cta" href="/terminal"><Terminal size={18} /> OPEN TERMINAL <ArrowRight size={18} /></Link>
+            <a className="primary-cta" href="/terminal"><Terminal size={18} /> OPEN TERMINAL <ArrowRight size={18} /></a>
             <a className="secondary-cta" href={PROJECT_LINKS.github} target="_blank" rel="noreferrer"><Code2 size={17} /> VIEW SOURCE</a>
           </div>
           <div className="safety-rail" aria-label="Safety boundaries">
@@ -90,7 +90,7 @@ export default function Home() {
           <p>
             Enter a Pons V2 token and an amount—or a public wallet. HOP OUT returns four independent exit estimates, the modeled haircut, and the market state behind the answer.
           </p>
-          <Link className="text-link" href="/terminal">RUN A POSITION <ArrowRight size={17} /></Link>
+          <a className="text-link" href="/terminal">RUN A POSITION <ArrowRight size={17} /></a>
         </div>
 
         <div className="receipt-preview">
@@ -134,13 +134,13 @@ export default function Home() {
           <p><Zap size={16} /> THE DOOR IS OPEN</p>
         </div>
         <h2>KNOW THE EXIT<br />BEFORE THE CROWD.</h2>
-        <Link className="primary-cta" href="/terminal">OPEN TERMINAL <ArrowRight size={18} /></Link>
+        <a className="primary-cta" href="/terminal">OPEN TERMINAL <ArrowRight size={18} /></a>
       </section>
 
       <footer className="landing-footer">
         <span>HOP OUT / 2026</span>
         <p><ShieldCheck size={15} /> ESTIMATES, NOT EXECUTION OR FINANCIAL ADVICE</p>
-        <div><Link href="/docs">DOCS</Link><a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div>
+        <div><a href="/docs">DOCS</a><a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div>
       </footer>
     </main>
   );

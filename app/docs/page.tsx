@@ -1,4 +1,4 @@
-import Link from "next/link";
+/* eslint-disable @next/next/no-html-link-for-pages -- Vinext Link navigation throws at runtime; hard navigations are intentional. */
 import { ArrowRight, Code2, ShieldCheck, Terminal } from "lucide-react";
 import { PROJECT_LINKS } from "@/lib/hopout/links";
 
@@ -13,10 +13,10 @@ export default function DocsPage() {
   return (
     <main className="docs-page">
       <header className="landing-nav">
-        <Link className="landing-brand" href="/"><span className="status-dot" /> HOP OUT <i>{"//"}</i> DOCS</Link>
+        <a className="landing-brand" href="/"><span className="status-dot" /> HOP OUT <i>{"//"}</i> DOCS</a>
         <nav aria-label="Documentation navigation">
-          <Link href="/#how-it-works">HOW IT WORKS</Link>
-          <Link href="/terminal">TERMINAL</Link>
+          <a href="/#how-it-works">HOW IT WORKS</a>
+          <a href="/terminal">TERMINAL</a>
         </nav>
         <div className="site-actions">
           <a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">GITHUB ↗</a>
@@ -51,7 +51,7 @@ export default function DocsPage() {
             <p className="section-index">HOP OUT / DOCUMENTATION</p>
             <h1>READ THE DOOR.<br />THEN DECIDE.</h1>
             <p>HOP OUT is a read-only exit-liquidity inspector for Pons V2 tokens on Robinhood Chain. It compares a position&apos;s spot value with estimated proceeds at four independent sale sizes.</p>
-            <Link className="primary-cta" href="/terminal"><Terminal size={17} /> RUN THE TOOL <ArrowRight size={17} /></Link>
+            <a className="primary-cta" href="/terminal"><Terminal size={17} /> RUN THE TOOL <ArrowRight size={17} /></a>
           </section>
 
           <section className="docs-section" id="input">
