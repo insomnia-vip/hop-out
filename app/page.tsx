@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, Check, ChevronRight, Copy, ExternalLink, LoaderCircle, ShieldCheck, Terminal } from "lucide-react";
-import type { ExitReport, QuoteError } from "@/lib/hopout/types";
+import { ArrowUpRight, Check, Code2, Copy, ExternalLink, LoaderCircle, ShieldCheck, Terminal } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { demoReport } from "@/lib/hopout/demo";
 import { validateInput } from "@/lib/hopout/input";
 import { renderReceipt } from "@/lib/hopout/receipt";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { ExitReport, QuoteError } from "@/lib/hopout/types";
 
 const SAMPLE_TOKEN = "0xac79255f6f404eba14f316e8669d76573a2d7b1e";
 const SAMPLE_AMOUNT = "1000000";
@@ -21,35 +21,39 @@ async function requestQuote(input: { token: string; amount?: string; wallet?: st
     body: JSON.stringify(input),
   });
   const payload = (await response.json()) as ExitReport | QuoteError;
-  if (!response.ok || "error" in payload) {
-    throw new Error("error" in payload ? payload.error : "Quote failed.");
-  }
+  if (!response.ok || "error" in payload) throw new Error("error" in payload ? payload.error : "Quote failed.");
   return payload;
 }
 
-function compact(value: number | null, maximumFractionDigits = 4) {
-  if (value == null || !Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits, notation: Math.abs(value) >= 1_000_000 ? "compact" : "standard" }).format(value);
+function number(value: number | string | null, digits = 4) {
+  const parsed = typeof value === "string" ? Number(value) : value;
+  if (parsed == null || !Number.isFinite(parsed)) return "—";
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: digits,
+    notation: Math.abs(parsed) >= 1_000_000 ? "compact" : "standard",
+  }).format(parsed);
 }
 function money(value: number | null) {
   if (value == null || !Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: value < 1 ? 4 : 2 }).format(value);
+  return new Intl.NumberFormat("en-US", {
+    style: "currency", currency: "USD", maximumFractionDigits: value < 1 ? 4 : 2,
+  }).format(value);
 }
-function shorten(value: string, lead = 6) {
+function short(value: string, lead = 7) {
   return value.length > lead * 2 + 3 ? `${value.slice(0, lead)}…${value.slice(-lead)}` : value;
 }
 function verdict(haircut: number | null) {
-  if (haircut == null) return { label: "UNKNOWN DOOR", tone: "neutral" };
-  if (haircut < 5) return { label: "WIDE OPEN", tone: "good" };
+  if (haircut == null) return { label: "NO SIGNAL", tone: "idle" };
+  if (haircut < 5) return { label: "WIDE EXIT", tone: "safe" };
   if (haircut < 15) return { label: "TIGHT EXIT", tone: "warn" };
-  if (haircut < 35) return { label: "SMALL DOOR", tone: "bad" };
+  if (haircut < 35) return { label: "SMALL DOOR", tone: "risk" };
   return { label: "YOU ARE THE LIQUIDITY", tone: "danger" };
 }
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>("amount");
-  const [token, setToken] = useState("");
-  const [amount, setAmount] = useState("");
+  const [token, setToken] = useState(SAMPLE_TOKEN);
+  const [amount, setAmount] = useState(SAMPLE_AMOUNT);
   const [wallet, setWallet] = useState("");
   const [report, setReport] = useState<ExitReport | null>(null);
   const [error, setError] = useState("");
@@ -62,7 +66,12 @@ export default function Home() {
     const timer = window.setTimeout(() => {
       try {
         const saved = JSON.parse(localStorage.getItem("hop-out-recent") || "[]");
-        if (Array.isArray(saved)) setRecent(saved.filter((item) => item && typeof item.address === "string" && /^0x[0-9a-fA-F]{40}$/.test(item.address) && typeof item.symbol === "string" && typeof item.checkedAt === "string").slice(0, 4));
+        if (Array.isArray(saved)) {
+          setRecent(saved.filter((item) =>
+            item && /^0x[0-9a-fA-F]{40}$/.test(item.address) &&
+            typeof item.symbol === "string" && typeof item.checkedAt === "string",
+          ).slice(0, 4));
+        }
       } catch { /* local history is optional */ }
     }, 0);
     return () => window.clearTimeout(timer);
@@ -75,13 +84,13 @@ export default function Home() {
     void Promise.resolve(context.registerTool({
       name: "inspect_exit_liquidity",
       title: "Inspect exit liquidity",
-      description: "Estimate the proceeds and price-impact haircut for selling a Pons V2 token amount or the balance of a public wallet on Robinhood Chain.",
+      description: "Estimate proceeds and price-impact haircut for a Pons V2 token amount or public wallet balance on Robinhood Chain.",
       inputSchema: {
         type: "object",
         properties: {
           token: { type: "string", description: "Pons V2 token contract address." },
-          amount: { type: "string", description: "Human-readable token amount. Use either amount or wallet." },
-          wallet: { type: "string", description: "Public wallet address whose full token balance should be inspected. Use either wallet or amount." },
+          amount: { type: "string", description: "Token amount. Use either amount or wallet." },
+          wallet: { type: "string", description: "Public wallet address. Use either wallet or amount." },
         },
         required: ["token"],
         additionalProperties: false,
@@ -91,136 +100,252 @@ export default function Home() {
         const value = validateInput(input);
         if (busy.current) throw new Error("An inspection is already running.");
         busy.current = true;
-        const nextMode: Mode = typeof value.wallet === "string" ? "wallet" : "amount";
-        setMode(nextMode); setToken(value.token);
-        if (nextMode === "wallet") setWallet(value.wallet as string); else setAmount(value.amount as string);
         setLoading(true); setError(""); setReport(null);
+        const nextMode: Mode = value.wallet ? "wallet" : "amount";
+        setMode(nextMode); setToken(value.token);
+        if (value.wallet) setWallet(value.wallet); else setAmount(value.amount || "");
         try {
-          const nextReport = await requestQuote({ token: value.token, ...(nextMode === "wallet" ? { wallet: value.wallet as string } : { amount: value.amount as string }) });
-          setReport(nextReport);
+          const next = await requestQuote(value);
+          setReport(next);
           return {
-            token: nextReport.token.symbol,
-            amount: nextReport.position.amount,
-            quotes: nextReport.quotes.map((quote) => ({ sellPercent: quote.fraction * 100, proceedsUsd: quote.proceedsUsd, haircutPct: quote.haircutPct })),
-            observedAt: nextReport.observedAt,
+            token: next.token.symbol,
+            amount: next.position.amount,
+            quotes: next.quotes.map((quote) => ({
+              sellPercent: quote.fraction * 100,
+              proceedsUsd: quote.proceedsUsd,
+              haircutPct: quote.haircutPct,
+            })),
+            observedAt: next.observedAt,
           };
         } catch (caught) {
-          const message = caught instanceof Error ? caught.message : "Could not inspect this token.";
-          setError(message); throw new Error(message);
-        } finally { busy.current = false; setLoading(false); }
+          const message = caught instanceof Error ? caught.message : "Inspection failed.";
+          setError(message);
+          throw new Error(message);
+        } finally {
+          busy.current = false; setLoading(false);
+        }
       },
     }, { signal: lifecycle.signal })).catch(() => undefined);
     return () => lifecycle.abort();
   }, []);
 
-  const fullQuote = report?.quotes.find((quote) => quote.fraction === 1) ?? null;
-  const fullVerdict = useMemo(() => verdict(fullQuote?.haircutPct ?? null), [fullQuote?.haircutPct]);
+  const full = report?.quotes.find((quote) => quote.fraction === 1) ?? null;
+  const signal = useMemo(() => verdict(full?.haircutPct ?? null), [full?.haircutPct]);
+  const isDemo = report?.evidence.mode === "demo";
+  const status = loading ? "READING POOL" : error ? "INPUT ERROR" : isDemo ? "SYNTHETIC DEMO" : report ? "LIVE SNAPSHOT" : "READY";
 
-  async function inspect(inputMode: Mode = mode) {
+  async function inspect() {
     if (busy.current) return;
     busy.current = true;
-    setMode(inputMode);
-    document.querySelector("#terminal")?.scrollIntoView();
     setLoading(true); setError(""); setReport(null);
     try {
-      const payload = await requestQuote({ token: token.trim(), ...(inputMode === "amount" ? { amount: amount.trim() } : { wallet: wallet.trim() }) });
-      setReport(payload);
-      const next = [{ address: payload.token.address, symbol: payload.token.symbol, checkedAt: payload.observedAt }, ...recent.filter((item) => item.address !== payload.token.address)].slice(0, 4);
-      setRecent(next);
-      try { localStorage.setItem("hop-out-recent", JSON.stringify(next)); } catch { /* storage is optional */ }
+      const input = { token: token.trim(), ...(mode === "amount" ? { amount: amount.trim() } : { wallet: wallet.trim() }) };
+      const next = await requestQuote(input);
+      setReport(next);
+      const checks = [
+        { address: next.token.address, symbol: next.token.symbol, checkedAt: next.observedAt },
+        ...recent.filter((item) => item.address !== next.token.address),
+      ].slice(0, 4);
+      setRecent(checks);
+      try { localStorage.setItem("hop-out-recent", JSON.stringify(checks)); } catch { /* optional */ }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not inspect this token.");
-    } finally { busy.current = false; setLoading(false); }
+    } finally {
+      busy.current = false; setLoading(false);
+    }
   }
 
-  function loadSample() { setMode("amount"); setToken(SAMPLE_TOKEN); setAmount(SAMPLE_AMOUNT); setError(""); }
-
+  function loadSample() {
+    setMode("amount"); setToken(SAMPLE_TOKEN); setAmount(SAMPLE_AMOUNT); setError(""); setReport(null);
+  }
   function loadDemo() {
     if (busy.current) return;
     setReport(demoReport()); setError("");
-    document.querySelector("#terminal")?.scrollIntoView();
+  }
+  async function copyReceipt() {
+    if (!report) return;
+    try {
+      await navigator.clipboard.writeText(renderReceipt(report));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch {
+      setError("Clipboard unavailable. Copy the values manually.");
+    }
   }
 
-  async function copyReceipt() {
-    if (!report || !fullQuote) return;
-    try {
-      await navigator.clipboard.writeText(renderReceipt(report)); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
-    } catch { setError("Clipboard unavailable. Select the receipt text to copy it manually."); }
-  }
+  const systemLines = loading ? [
+    ["RUN", "validating token identity"],
+    ["RPC", "reading canonical market state"],
+    ["WAIT", "calculating four independent exits"],
+  ] : error ? [
+    ["ERR", error],
+    ["READY", "edit the input and run again"],
+  ] : report ? [
+    [isDemo ? "DEMO" : "DONE", isDemo ? "offline fixture loaded / no network" : "public market snapshot captured"],
+    ["MODE", report.method.precision === "protocol-math" ? "pinned curve reserves" : "published pool-depth estimate"],
+    ["SOURCE", report.evidence.blockNumber ? `block ${report.evidence.blockNumber}` : report.evidence.poolId ? `pool ${short(report.evidence.poolId, 6)}` : "synthetic reserves"],
+  ] : [
+    ["READY", "COPY sample loaded in the input"],
+    ["NEXT", "run inspection or open offline demo"],
+    ["SAFE", "no signer / no transaction path"],
+  ];
 
   return (
-    <main>
-      <header className="site-header">
-        <a className="brand" href="#top" aria-label="HOP OUT home"><span className="brand-mark">H</span><span>HOP OUT</span></a>
-        <nav aria-label="Primary navigation"><a href="#terminal">TERMINAL</a><a href="#method">METHOD</a><a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">GITHUB <ArrowUpRight size={13} /></a></nav>
-        <span className="network-pill"><i /> ROBINHOOD CHAIN</span>
+    <main className="terminal-app">
+      <header className="topline">
+        <a className="micro-brand" href="#terminal" aria-label="HOP OUT terminal"><span className="status-dot" /> HOP OUT // EXIT LIQUIDITY</a>
+        <nav aria-label="Project links">
+          <a href="#method">METHOD</a>
+          <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer"><Code2 size={15} /> SOURCE</a>
+        </nav>
+        <span className="chain-label">ROBINHOOD CHAIN / 4663</span>
       </header>
 
-      <section className="hero" id="top">
-        <div className="hero-copy">
-          <div className="eyebrow"><Terminal size={14} /> READ-ONLY EXIT LIQUIDITY TERMINAL</div>
-          <h1>YOUR BAG GREW.<br /><span>THE EXIT DIDN&apos;T.</span></h1>
-          <p className="hero-deck">The chart shows what your tokens are worth at the last price. HOP OUT estimates what the pool could actually pay.</p>
-          <form className="hero-quick" onSubmit={(event) => { event.preventDefault(); void inspect("amount"); }}>
-            <input aria-label="Quick token contract" value={token} onChange={(event) => setToken(event.target.value)} placeholder="TOKEN CONTRACT  0x..." spellCheck={false} />
-            <input aria-label="Quick token amount" value={amount} onChange={(event) => { setMode("amount"); setAmount(event.target.value); }} placeholder="AMOUNT" inputMode="decimal" />
-            <button type="submit" disabled={loading}>{loading ? <LoaderCircle className="spin" size={18} /> : <ChevronRight size={18} />}<span>CHECK</span></button>
-          </form>
-          <div className="hero-actions"><a className="primary-action" href="#terminal">OPEN FULL RECEIPT <ChevronRight size={18} /></a><button className="text-action" type="button" onClick={loadDemo} disabled={loading}>EXPLORE OFFLINE DEMO</button></div>
-          <div className="trust-row"><span><ShieldCheck size={15} /> NO WALLET CONNECT</span><span>NO KEYS</span><span>NO TRADES</span></div>
-        </div>
-        <div className="mascot-stage" aria-label="Pixel frog approaching a tiny exit door">
-          <div className="grid-glow" /><span className="stage-label">BIG BAG</span>
-          <Image className="mascot" src="/hop-out-toad.png" alt="Acid green pixel frog mascot" width={768} height={768} priority />
-          <div className="door"><span>EXIT</span><i /></div><span className="door-caption">SMALL DOOR</span>
-        </div>
-      </section>
-
-      <section className="ticker" aria-label="Product principles"><div><span>SPOT PRICE IS NOT EXIT PRICE</span><b>✦</b><span>HOW BIG IS THE DOOR?</span><b>✦</b><span>READ THE POOL, NOT THE POST</span><b>✦</b><span>SPOT PRICE IS NOT EXIT PRICE</span></div></section>
-
-      <section className="terminal-section" id="terminal">
-        <div className="section-heading"><div><span>01 / TERMINAL</span><h2>PUT THE BAG ON THE SCALE.</h2></div><p>Live public data. One token, one position, four exit sizes.</p></div>
-        <div className="terminal-shell">
-          <div className="terminal-bar"><span className="window-dots"><i /><i /><i /></span><span>hop-out://robinhood/inspect</span><span className="live-indicator"><i /> {loading ? "READING" : report?.evidence.mode === "demo" ? "SYNTHETIC DEMO" : report ? "LIVE SNAPSHOT" : "READY"}</span></div>
-          <div className="terminal-grid">
-            <form className="quote-form" onSubmit={(event) => { event.preventDefault(); void inspect(); }}>
-              <label><span>01 — PONS V2 TOKEN CONTRACT</span><input aria-label="Token contract address" value={token} onChange={(event) => setToken(event.target.value)} placeholder="0x..." spellCheck={false} /></label>
-              <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)} className="position-tabs">
-                <TabsList className="mode-tabs" aria-label="Position input mode"><TabsTrigger value="amount">TOKEN AMOUNT</TabsTrigger><TabsTrigger value="wallet">PUBLIC WALLET</TabsTrigger></TabsList>
-                <TabsContent value="amount"><label><span>02 — HOW MANY TOKENS?</span><input aria-label="Token amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="1000000" /></label></TabsContent>
-                <TabsContent value="wallet"><label><span>02 — PUBLIC WALLET ADDRESS</span><input aria-label="Public wallet address" value={wallet} onChange={(event) => setWallet(event.target.value)} placeholder="0x..." spellCheck={false} /></label></TabsContent>
-              </Tabs>
-              <button className="inspect-button" type="submit" disabled={loading}>{loading ? <><LoaderCircle className="spin" size={18} /> READING THE POOL</> : <>INSPECT MY EXIT <ArrowUpRight size={18} /></>}</button>
-              <button className="sample-button" type="button" onClick={loadSample}>USE COPY AS A LIVE SAMPLE</button>
-              {error && <div className="form-error" role="alert">ERR / {error}</div>}
-              <p className="privacy-note"><ShieldCheck size={14} /> Addresses are read only. Recent checks stay in this browser.</p>
-            </form>
-
-            <div className={`receipt ${report ? "has-report" : ""}`} aria-live="polite">
-              {!report ? <div className="receipt-empty"><Image src="/hop-out-toad.png" alt="" width={120} height={120} /><span>WAITING FOR A BAG</span><p>Enter a contract and position.<br />The frog will measure the door.</p></div> : <>
-                <div className="receipt-head"><div><span>EXIT RECEIPT</span><h3>{report.token.name} <b>${report.token.symbol}</b></h3></div><span className={`verdict ${fullVerdict.tone}`}>{fullVerdict.label}</span></div>
-                <div className="receipt-meta"><span>{shorten(report.token.address, 7)}</span><span>{report.market.phaseLabel}</span><span>{report.method.precision === "protocol-math" ? "EXACT CURVE MATH" : "DEPTH ESTIMATE"}</span></div>
-                <p className="snapshot-note">{report.evidence.mode === "demo" ? "SYNTHETIC EXAMPLE · NOT A LIVE TOKEN" : `SNAPSHOT · ${new Date(report.observedAt).toLocaleString()}`}{report.evidence.blockNumber && ` · BLOCK ${report.evidence.blockNumber}`}</p>
-                <div className="headline-numbers"><div><span>SCREEN VALUE</span><strong>{money(fullQuote?.spotValueUsd ?? null)}</strong><small>{compact(fullQuote?.spotValueQuote ?? null)} {report.market.pairLabel}</small></div><div className="arrow-cell">→</div><div><span>EST. EXIT</span><strong>{money(fullQuote?.proceedsUsd ?? null)}</strong><small>{compact(fullQuote?.proceedsQuote ?? null)} {report.market.pairLabel}</small></div></div>
-                <div className="haircut-line"><span>THE DOOR TAKES</span><strong>{compact(fullQuote?.haircutPct ?? null, 1)}%</strong></div>
-                <table className="quote-table"><caption className="sr-only">Estimated proceeds by sale size</caption><thead><tr><th scope="col">SELL</th><th scope="col">SPOT</th><th scope="col">YOU GET</th><th scope="col">HAIRCUT</th></tr></thead><tbody>{report.quotes.map((quote) => <tr key={quote.fraction}><th scope="row">{quote.fraction * 100}%</th><td>{quote.spotValueUsd == null ? `${compact(quote.spotValueQuote, 8)} ${report.market.pairLabel}` : money(quote.spotValueUsd)}</td><td>{quote.proceedsUsd == null ? `${compact(quote.proceedsQuote, 8)} ${report.market.pairLabel}` : money(quote.proceedsUsd)}</td><td className={(quote.haircutPct ?? 0) >= 15 ? "hot" : ""}>{compact(quote.haircutPct, 1)}%</td></tr>)}</tbody></table>
-                <div className="receipt-facts"><span>POOL LIQUIDITY <b>{money(report.market.liquidityUsd)}</b></span><span>24H VOLUME <b>{money(report.market.volume24hUsd)}</b></span><span>FEES MODELED <b>{(report.market.totalFeeBps / 100).toFixed(2)}%</b></span></div>
-                <p className="method-note">{report.method.note}</p>
-                <div className="receipt-actions"><button type="button" onClick={() => void copyReceipt()}>{copied ? <Check size={15} /> : <Copy size={15} />}{copied ? "COPIED" : "COPY RECEIPT"}</button>{report.links.market && <a href={report.links.market} target="_blank" rel="noreferrer">OPEN MARKET <ExternalLink size={14} /></a>}</div>
-              </>}
+      <section className="workspace" id="terminal">
+        <div className="main-console">
+          <div className="console-brand">
+            <div>
+              <h1>HOP OUT</h1>
+              <p>THE READ-ONLY EXIT LIQUIDITY TERMINAL</p>
             </div>
+            <Image src="/hop-out-toad.png" width={116} height={116} alt="HOP OUT pixel frog" priority />
           </div>
+
+          <form className="command-panel" onSubmit={(event) => { event.preventDefault(); void inspect(); }}>
+            <div className="panel-title"><span>01 / POSITION INPUT</span><b><i /> {status}</b></div>
+            <label className="field">
+              <span>TOKEN CONTRACT</span>
+              <input value={token} onChange={(event) => setToken(event.target.value)} aria-label="Pons V2 token contract" spellCheck={false} placeholder="0x..." />
+            </label>
+            <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)} className="terminal-tabs">
+              <TabsList className="tab-switch" aria-label="Position mode">
+                <TabsTrigger value="amount">TOKEN AMOUNT</TabsTrigger>
+                <TabsTrigger value="wallet">PUBLIC WALLET</TabsTrigger>
+              </TabsList>
+              <TabsContent value="amount">
+                <label className="field"><span>AMOUNT TO TEST</span><input value={amount} onChange={(event) => setAmount(event.target.value)} inputMode="decimal" aria-label="Token amount" placeholder="1000000" /></label>
+              </TabsContent>
+              <TabsContent value="wallet">
+                <label className="field"><span>READ FULL BALANCE OF</span><input value={wallet} onChange={(event) => setWallet(event.target.value)} aria-label="Public wallet address" spellCheck={false} placeholder="0x..." /></label>
+              </TabsContent>
+            </Tabs>
+            <div className="command-actions">
+              <button className="run-button" type="submit" disabled={loading}>
+                {loading ? <LoaderCircle className="spin" size={16} /> : <Terminal size={16} />}
+                {loading ? "READING..." : "RUN INSPECTION"}
+              </button>
+              <button type="button" onClick={loadSample} disabled={loading}>RESET COPY SAMPLE</button>
+              <button type="button" onClick={loadDemo} disabled={loading}>OFFLINE DEMO</button>
+            </div>
+            {error && <div className="console-error" role="alert">ERR / {error}</div>}
+          </form>
+
+          <section className="result-panel" aria-live="polite">
+            <div className="panel-title">
+              <span>02 / EXIT MATRIX</span>
+              <b className={`signal ${signal.tone}`}>{signal.label}</b>
+            </div>
+            {!report ? (
+              <div className="empty-output">
+                <span className="prompt">&gt;</span>
+                <div><strong>WAITING FOR POSITION</strong><p>Run the loaded COPY sample or use the deterministic offline demo.</p></div>
+              </div>
+            ) : (
+              <>
+                <div className="token-line">
+                  <div><strong>{report.token.symbol}</strong><span>{short(report.token.address)}</span></div>
+                  <span>{report.market.phaseLabel}</span>
+                  <span>{number(report.position.amount)} TOKENS</span>
+                  <span>{isDemo ? "INVENTED DATA" : new Date(report.observedAt).toLocaleString()}</span>
+                </div>
+                <div className="value-strip">
+                  <div><span>SCREEN VALUE</span><strong>{money(full?.spotValueUsd ?? null)}</strong><small>{number(full?.spotValueQuote ?? null, 8)} {report.market.pairLabel}</small></div>
+                  <div className="value-arrow">→</div>
+                  <div><span>EST. FULL EXIT</span><strong>{money(full?.proceedsUsd ?? null)}</strong><small>{number(full?.proceedsQuote ?? null, 8)} {report.market.pairLabel}</small></div>
+                  <div className="door-loss"><span>DOOR TAKES</span><strong>{number(full?.haircutPct ?? null, 2)}%</strong></div>
+                </div>
+                <table className="exit-table">
+                  <caption className="sr-only">Estimated proceeds by sale size</caption>
+                  <thead><tr><th>SELL</th><th>TOKENS</th><th>SPOT</th><th>EST. PROCEEDS</th><th>HAIRCUT</th><th>RETAINED</th></tr></thead>
+                  <tbody>{report.quotes.map((quote) => {
+                    const retained = quote.haircutPct == null ? 0 : Math.max(0, 100 - quote.haircutPct);
+                    return <tr key={quote.fraction}>
+                      <th scope="row">{quote.fraction * 100}%</th>
+                      <td>{number(quote.tokenAmount)}</td>
+                      <td>{quote.spotValueUsd == null ? `${number(quote.spotValueQuote, 8)} ${report.market.pairLabel}` : money(quote.spotValueUsd)}</td>
+                      <td>{quote.proceedsUsd == null ? `${number(quote.proceedsQuote, 8)} ${report.market.pairLabel}` : money(quote.proceedsUsd)}</td>
+                      <td className={(quote.haircutPct ?? 0) >= 15 ? "hot" : ""}>{number(quote.haircutPct, 2)}%</td>
+                      <td><span className="retained-track"><i style={{ width: `${retained}%` }} /></span></td>
+                    </tr>;
+                  })}</tbody>
+                </table>
+              </>
+            )}
+          </section>
+
+          {recent.length > 0 && <div className="recent-strip"><span>RECENT / LOCAL</span>{recent.map((item) =>
+            <button key={item.address} type="button" onClick={() => { setToken(item.address); setReport(null); }}>
+              ${item.symbol} <small>{short(item.address, 4)}</small>
+            </button>,
+          )}</div>}
         </div>
-        {recent.length > 0 && <div className="recent-row"><span>RECENT / LOCAL</span>{recent.map((item) => <button key={item.address} type="button" onClick={() => { setToken(item.address); document.querySelector("#terminal")?.scrollIntoView(); }}>${item.symbol} <small>{shorten(item.address, 4)}</small></button>)}</div>}
+
+        <aside className="side-console">
+          <section>
+            <div className="panel-title"><span>ENGINE / SESSION</span><b><i /> {status}</b></div>
+            <div className="system-log">{systemLines.map(([kind, line], index) =>
+              <p key={index}><b className={kind === "ERR" ? "log-error" : ""}>{kind}</b><span>{line}</span></p>,
+            )}</div>
+          </section>
+
+          <section>
+            <div className="panel-title"><span>MARKET RECEIPT</span></div>
+            <dl className="market-data">
+              <div><dt>MODE</dt><dd>{report ? report.method.label : "awaiting inspection"}</dd></div>
+              <div><dt>LIQUIDITY</dt><dd>{report ? money(report.market.liquidityUsd) : "—"}</dd></div>
+              <div><dt>24H VOLUME</dt><dd>{report ? money(report.market.volume24hUsd) : "—"}</dd></div>
+              <div><dt>FEES MODELED</dt><dd>{report ? `${(report.market.totalFeeBps / 100).toFixed(2)}%` : "—"}</dd></div>
+              <div><dt>STATE ID</dt><dd>{report?.evidence.blockNumber ? `block ${report.evidence.blockNumber}` : report?.evidence.poolId ? short(report.evidence.poolId, 5) : "—"}</dd></div>
+            </dl>
+          </section>
+
+          <section className="boundary-panel">
+            <div className="panel-title"><span>READ-ONLY BOUNDARY</span></div>
+            <p><b>01</b> Public RPC and market data</p>
+            <p><b>02</b> No wallet connection</p>
+            <p><b>03</b> No keys, approvals or trades</p>
+            <p><b>04</b> No executable-price promise</p>
+          </section>
+
+          {report && <section className="receipt-tools">
+            <div className="panel-title"><span>RECEIPT ACTIONS</span></div>
+            <button type="button" onClick={() => void copyReceipt()}>{copied ? <Check size={15} /> : <Copy size={15} />}{copied ? "COPIED" : "COPY RECEIPT"}</button>
+            {report.links.market && <a href={report.links.market} target="_blank" rel="noreferrer">OPEN MARKET <ExternalLink size={14} /></a>}
+            {report.links.explorer && <a href={report.links.explorer} target="_blank" rel="noreferrer">OPEN EXPLORER <ExternalLink size={14} /></a>}
+          </section>}
+
+          <div className="frog-note">
+            <Image src="/hop-out-toad.png" width={92} height={92} alt="" />
+            <div><span>BIG BAG.</span><strong>SMALL DOOR.</strong></div>
+          </div>
+        </aside>
       </section>
 
-      <section className="method-section" id="method">
-        <div className="section-heading inverse"><div><span>02 / METHOD</span><h2>THE RECEIPT, NOT THE HYPE.</h2></div><p>Transparent assumptions. Reproducible numbers. Zero custody.</p></div>
-        <div className="method-cards"><article><span>01</span><h3>READ THE BAG</h3><p>Use a token amount or read the balance of a public address. Nothing is signed.</p></article><article><span>02</span><h3>READ THE DOOR</h3><p>Before graduation, use live Pons V2 curve reserves. After graduation, use canonical published pool depth.</p></article><article><span>03</span><h3>SHOW THE HAIRCUT</h3><p>Compare last-price value with estimated proceeds at 10%, 25%, 50%, and 100% of the bag.</p></article></div>
-        <div className="disclaimer"><ShieldCheck size={18} /><p><b>READ-ONLY BY DESIGN.</b> HOP OUT never connects a wallet, requests a signature, or sends a transaction. Estimates are not executable quotes or financial advice.</p></div>
+      <section className="method" id="method">
+        <div className="method-head"><span>HOW IT WORKS</span><h2>ONE BAG. FOUR EXITS.</h2><p>HOP OUT reads public state, calculates independent 10%, 25%, 50% and 100% sales, then returns a timestamped receipt.</p></div>
+        <div className="method-grid">
+          <article><b>01</b><h3>READ THE BAG</h3><p>Enter an amount or use a public address balance. Nothing is connected or signed.</p></article>
+          <article><b>02</b><h3>READ THE DOOR</h3><p>Curve launches use pinned contract reserves. Graduated launches use canonical published pool depth.</p></article>
+          <article><b>03</b><h3>SHOW THE GAP</h3><p>Compare spot value with estimated proceeds, including modeled fees and price impact.</p></article>
+        </div>
+        <div className="method-warning"><ShieldCheck size={18} /><p><strong>ESTIMATE, NOT EXECUTION.</strong> Pool state can move. Graduated-pool results are depth approximations, not Uniswap v4 executable quotes or financial advice.</p></div>
       </section>
 
-      <footer><div><Image src="/hop-out-toad.png" alt="HOP OUT frog" width={54} height={54} /><strong>HOP OUT</strong></div><p>BIG BAG. SMALL DOOR.</p><span>BUILT FOR ROBINHOOD CHAIN / 2026</span></footer>
+      <footer>
+        <span>HOP OUT / 2026</span>
+        <a href="https://github.com/insomnia-vip/hop-out" target="_blank" rel="noreferrer">OPEN SOURCE <ArrowUpRight size={14} /></a>
+        <span>NO SIGNER / NO TRANSACTION PATH</span>
+      </footer>
     </main>
   );
 }
