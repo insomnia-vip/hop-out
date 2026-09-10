@@ -10,6 +10,7 @@ export type QuoteRow = {
 
 export type ExitReport = {
   observedAt: string;
+  evidence: { mode: "live" | "demo"; blockNumber: string | null; poolId: string | null; sources: string[] };
   token: {
     address: string;
     name: string;
@@ -50,6 +51,7 @@ export type QuoteError = {
     | "INVALID_INPUT"
     | "NOT_PONS_V2"
     | "NO_MARKET"
+    | "INSUFFICIENT_RESERVES"
     | "UPSTREAM_UNAVAILABLE"
     | "UNSUPPORTED_PHASE";
 };

@@ -1,85 +1,140 @@
-<div align="center">
-  <img src="public/hop-out-toad.png" width="148" alt="HOP OUT pixel frog" />
-  <h1>HOP OUT</h1>
-  <p><strong>Your bag grew. The exit didn't.</strong></p>
-  <p>A read-only exit-liquidity terminal for Pons V2 tokens on Robinhood Chain.</p>
-</div>
+<p align="center"><img src="public/hop-out-toad.png" width="128" alt="HOP OUT pixel frog" /></p>
+<p align="center"><img src="assets/banner.svg" width="100%" alt="HOP OUT — Big bag. Small door." /></p>
 
----
+<p align="center">
+  <a href="https://github.com/insomnia-vip/hop-out/actions/workflows/ci.yml"><img src="https://github.com/insomnia-vip/hop-out/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
+  <img src="https://img.shields.io/badge/Node-22.13%2B-caff38?style=flat-square&amp;labelColor=070b07" alt="Node 22.13 or newer" />
+  <img src="https://img.shields.io/badge/Robinhood_Chain-4663-caff38?style=flat-square&amp;labelColor=070b07" alt="Robinhood Chain 4663" />
+  <img src="https://img.shields.io/badge/signing-none-caff38?style=flat-square&amp;labelColor=070b07" alt="No signing" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-caff38?style=flat-square&amp;labelColor=070b07" alt="MIT license" /></a>
+</p>
 
-The portfolio number is mark-to-market. It assumes every token can leave at the last traded price. Thin pools do not work that way.
+<p align="center"><strong>Measure the exit before the jump.</strong><br/>A browser and local CLI for inspecting Pons V2 exit liquidity on Robinhood Chain.</p>
+<p align="center"><a href="#start-in-one-minute">Start</a> · <a href="#live-inspection">Live inspection</a> · <a href="docs/COMMANDS.md">Commands</a> · <a href="docs/METHODOLOGY.md">Methodology</a> · <a href="docs/ARCHITECTURE.md">Architecture</a></p>
 
-HOP OUT measures the door. Give it a Pons V2 token and either an amount or a public wallet. It compares the screen value with estimated proceeds for selling 10%, 25%, 50%, and 100% of the position.
+## Why HOP OUT
 
-> Big bag. Small door.
+A wallet multiplies your bag by the last traded price. A pool prices the entire sale. Those two numbers can be very different.
 
-## What it does
+HOP OUT takes a token and position, then measures the difference at **10%, 25%, 50%, and 100%** of the bag. The frog is the meme; the exit receipt is the product.
 
-- reads a token amount or an address's public ERC-20 balance;
-- identifies the live Pons V2 launch phase;
-- uses live bonding-curve reserves before graduation;
-- uses the canonical pool's published depth after graduation;
-- models protocol, creator, and pool fees;
-- returns spot value, estimated proceeds, haircut, liquidity, and a plain-English verdict;
-- never connects a wallet, requests a signature, or constructs a transaction.
+## Available in v0.2
 
-## Try it
+| Surface | What works |
+| --- | --- |
+| Browser terminal | Amount or public wallet → four exit estimates → receipt |
+| Local CLI | `inspect`, `demo`, `doctor`; no web server required |
+| Offline walkthrough | Synthetic POND example, labelled DEMO, no provider requests |
+| Exports | JSON for scripts, Markdown for a readable receipt |
+| Curve engine | Block-pinned reserve and fee reads; separate on-chain fee rounding |
+| Graduated pool | Canonical published depth with an explicit approximation label |
+| Verification | Provider fixtures, input checks, CLI tests, Node 22/24 CI configuration |
 
-Use the COPY contract as a live example:
+The [hosted preview](https://hop-out-rh.nikitaguguman.chatgpt.site) currently requires owner access. Anyone can run the repository locally. No HOP OUT token contract has been deployed by this repository.
 
-```text
-0xac79255f6f404eba14f316e8669d76573a2d7b1e
-```
+## Start in one minute
 
-The interface also exposes the read-only `inspect_exit_liquidity` WebMCP tool in supported browsers, so an agent can run the same visible workflow with structured input and output.
-
-## How the estimate works
-
-### Phase 0 — live bonding curve
-
-HOP OUT reads `getReserves()` and the frozen `feeBps()` directly from the launch's Pons V2 curve. The gross sell output follows the protocol's constant-product formula, then launch and creator fees are removed from quote output. This path is labeled **protocol math**.
-
-### Phase 2 — graduated pool
-
-HOP OUT selects the canonical pool reported by Pons and reads its published base/quote depth from DexScreener. It applies a constant-product depth estimate and modeled fees. This path is deliberately labeled **market-depth estimate** because concentrated-liquidity routing can differ from aggregate published reserves.
-
-Full assumptions and formulas live in [docs/METHODOLOGY.md](docs/METHODOLOGY.md).
-
-## Run locally
-
-Requires Node.js 22.13+ and pnpm 11.
+Install Node.js 22.13+ and pnpm 11.19.0, then:
 
 ```bash
-pnpm install
+git clone https://github.com/insomnia-vip/hop-out.git
+cd hop-out
+pnpm install --frozen-lockfile
+pnpm demo
+```
+
+`demo` compiles the CLI and prints a reproducible, synthetic exit receipt. It does not fetch live data. Open the web terminal with:
+
+```bash
 pnpm dev
 ```
 
-Then open `http://localhost:5173`.
+Visit `http://localhost:5173`. Use **EXPLORE OFFLINE DEMO** or enter a real contract and position.
+
+## Live inspection
+
+COPY is a supported example, not the HOP OUT contract:
 
 ```bash
-pnpm test
-pnpm build
+pnpm hop inspect --token 0xac79255f6f404eba14f316e8669d76573a2d7b1e --amount 1000000
+pnpm doctor
 ```
 
-## API
+An observed result from **2026-09-10 17:09:13 UTC** (historical, not a current quote):
 
-`POST /api/quote`
+```text
+LIVE / COPY / Published pool-depth estimate
+Position: 1,000,000 COPY
+Screen value: 0.02997 ETH ($73.34)
+Est. exit:   0.02905822 ETH ($71.1088)
 
-```json
-{
-  "token": "0xac79255f6f404eba14f316e8669d76573a2d7b1e",
-  "amount": "1000000"
-}
+Sell       Haircut
+10%          2.54%
+25%          2.62%
+50%          2.76%
+100%         3.04%
 ```
 
-Use `wallet` instead of `amount` to inspect that address's complete public balance.
+Inspect a public balance or export the same report:
 
-## Boundaries
+```bash
+pnpm hop inspect --token <TOKEN_ADDRESS> --wallet <PUBLIC_WALLET>
+pnpm hop inspect --token <TOKEN_ADDRESS> --amount 1000000 --format json --output receipt.json
+pnpm hop demo --format markdown --output demo.md
+```
 
-HOP OUT is an estimator, not a router or executable quote. Blockchain state can change before a trade lands. The project is independent, unaffiliated with Robinhood or Pons, and is not financial advice.
+Exports refuse to overwrite existing files. [Full command reference →](docs/COMMANDS.md)
 
-See [SECURITY.md](SECURITY.md) before reporting an issue.
+## How it works
 
-## License
+```mermaid
+flowchart LR
+  A[Token + position] --> B[Pons launch metadata]
+  B --> C{Launch phase}
+  C -->|Curve| D[Pinned RPC reserves and fees]
+  C -->|Pool| E[Canonical published market depth]
+  D --> F[10 / 25 / 50 / 100 percent exits]
+  E --> F
+  F --> G[Timestamped receipt]
+  G --> H[Browser / CLI / JSON / Markdown]
+```
 
-MIT
+On the curve, Pons' sell formula uses virtual-plus-real pricing reserves. HOP OUT checks real trading reserves and subtracts separately rounded base and creator fees. Contract reads share one block number.
+
+After graduation, the engine approximates execution using the Pons-designated pool's published depth. It does not reconstruct Uniswap v4 ticks. The receipt discloses a 1% platform-fee assumption plus reported creator and LP fees. Missing canonical depth produces an explicit error.
+
+The haircut is the difference between spot value and estimated proceeds, including modeled fees. [Formulas, sources, limitations →](docs/METHODOLOGY.md)
+
+## Project map
+
+```text
+bin/hop-out.mjs          CLI commands and exclusive exports
+lib/hopout/
+  quote.ts              Shared live engine and provider reads
+  math.mjs              Integer curve / published-depth math
+  input.ts              Shared validation and error mapping
+  demo.ts               Isolated synthetic example
+  receipt.ts            Plain-text and Markdown rendering
+app/                    Browser terminal and read-only API
+assets/                 Original HOP OUT wordmark
+public/                 Pixel frog mascot
+docs/                   Methodology, commands, testing and launch kit
+test/                   Deterministic fixtures and CLI tests
+.github/workflows/      Cross-version CI
+```
+
+## API and development
+
+`POST /api/quote` accepts `{ "token": "0x…", "amount": "1000000" }` or `wallet` instead of `amount`. Responses include the method, source URLs, observation time and available block/pool identifiers. `GET /api/health` checks Pons availability.
+
+```bash
+pnpm check
+```
+
+See [testing](docs/TESTING.md), [contributing](CONTRIBUTING.md), [changelog](CHANGELOG.md), and [security](SECURITY.md). WebMCP registration is included for compatible browsers; the core UI and CLI do not depend on it.
+
+## Boundaries and sources
+
+HOP OUT holds no keys and has no transaction path. Estimates exclude gas, MEV and future state changes. It is not an executable quote or proof that a token is safe.
+
+Built against public [Pons Portal data](https://www.ponsportal.fun/docs.html), [Pons V2 contracts](https://github.com/ponsdotdev/ponsfamily/tree/main/contractsV2), [Robinhood Chain](https://docs.robinhood.com/chain/) and [DexScreener](https://docs.dexscreener.com/api/reference). Independent of these services. MIT — see [LICENSE](LICENSE).

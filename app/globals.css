@@ -116,6 +116,25 @@ body::before { content:""; position:fixed; inset:0; pointer-events:none; z-index
 footer { min-height:130px; padding:30px clamp(20px,6vw,100px); border-top:1px solid #292e26; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:20px; color:#5e655a; font-size:9px; letter-spacing:.1em; }
 footer div { display:flex; align-items:center; gap:10px; color:#ecf0df; font-size:13px; } footer img { image-rendering:pixelated; mix-blend-mode:screen; } footer p { color:var(--acid); } footer>span { justify-self:end; }
 .spin { animation:spin .8s linear infinite; }
+.position-tabs { gap:22px; }
+.mode-tabs { width:100%; height:auto!important; border-radius:0; background:none; }
+.mode-tabs button { border-radius:0; }
+.mode-tabs button[data-state=active] { background:#2a311f; color:var(--acid); }
+.quote-table { width:100%; border-collapse:collapse; font-size:12px; }
+.quote-table th,.quote-table td { padding:12px 9px; text-align:right; border-top:1px solid #292e27; font-weight:normal; }
+.quote-table th:first-child { text-align:left; color:var(--acid); }
+.quote-table thead { background:#151a12; color:#a0a793; font-size:11px; }
+.quote-table .hot { color:#ff805a; }
+.snapshot-note { color:var(--acid); font-size:11px; line-height:1.6; margin:0 0 18px; }
+.receipt-head h3 { overflow-wrap:anywhere; }
+.receipt-meta span,.receipt-facts,.receipt-actions button,.receipt-actions a,.method-note,.privacy-note,.quote-form label,.mode-tabs button,.trust-row,.text-action,.sample-button { font-size:12px; }
+.method-note,.privacy-note,.receipt-meta span,.receipt-facts { color:#9ca591; }
+.quote-form input { font-size:14px; }
+.receipt-head>div>span,.headline-numbers span,.headline-numbers small,.verdict { font-size:11px; }
+.hero-actions { flex-wrap:wrap; }
+.method-cards p { font-size:16px; }
+.disclaimer p { font-size:13px; }
+button:focus-visible,a:focus-visible { outline:2px solid var(--acid); outline-offset:4px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 @keyframes pulse { 50% { opacity:.35; box-shadow:0 0 3px var(--acid); } }
 

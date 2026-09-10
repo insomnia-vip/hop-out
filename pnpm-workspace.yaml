@@ -1,3 +1,5 @@
+# Installation is explicit (see CI); running a command never reinstalls dependencies.
+verifyDepsBeforeRun: false
 allowBuilds:
   esbuild: true
   sharp: true

@@ -7,8 +7,9 @@ import {
   parseUnits,
   type Address,
 } from "viem";
-import { curveSellQuote, marketDepthQuote, percentageDifference } from "./math.mjs";
-import type { ExitReport } from "./types";
+import { constantProductOut, curveSellQuote, marketDepthQuote, percentageDifference } from "./math.mjs";
+import { validateInput, type QuoteRequest } from "./input.js";
+import type { ExitReport } from "./types.js";
 
 const PONS_API = "https://api.ponsportal.fun";
 const DEX_API = "https://api.dexscreener.com/latest/dex/tokens";
@@ -47,6 +48,11 @@ const erc20Abi = [
 ] as const;
 
 const curveAbi = [
+  ...["realQuoteReserve", "creatorTaxBps"].map((name) => ({
+    type: "function" as const, name, stateMutability: "view" as const,
+    inputs: [], outputs: [{ name: "", type: "uint256" as const }],
+  })),
+  { type: "function", name: "readyToGraduate", stateMutability: "view", inputs: [], outputs: [{ name: "", type: "bool" }] },
   {
     type: "function",
     name: "getReserves",
@@ -103,16 +109,15 @@ type DexPair = {
   volume?: { h24?: number };
 };
 
-type QuoteRequest = { token: string; amount?: string; wallet?: string };
-
 async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url, {
-    headers: { accept: "application/json", "user-agent": "hop-out/0.1" },
+    headers: { accept: "application/json", "user-agent": "hop-out/0.2" },
     cache: "no-store",
+    signal: AbortSignal.timeout(12_000),
   });
   const payload = (await response.json().catch(() => null)) as T | null;
   if (!response.ok || !payload) {
-    throw new Error(`Upstream ${response.status}`);
+    throw new Error(response.status === 404 && url.startsWith(PONS_API + "/token/") ? "NOT_PONS_V2" : `Upstream ${response.status}`);
   }
   return payload;
 }
@@ -124,6 +129,7 @@ function cleanDecimal(value: string | undefined) {
 }
 
 function toNumber(value: unknown) {
+  if (value == null || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 }
@@ -138,13 +144,7 @@ function selectPair(pairs: DexPair[], token: string, poolId?: string) {
   const canonical = poolId
     ? candidates.find((pair) => pair.pairAddress.toLowerCase() === poolId.toLowerCase())
     : undefined;
-  return (
-    canonical ??
-    candidates.sort(
-      (a, b) => Number(b.liquidity?.usd ?? 0) - Number(a.liquidity?.usd ?? 0),
-    )[0] ??
-    null
-  );
+  return canonical ?? null;
 }
 
 function fractionRaw(total: bigint, fraction: number) {
@@ -154,15 +154,18 @@ function fractionRaw(total: bigint, fraction: number) {
 async function resolveAmount(
   input: QuoteRequest,
   token: PonsToken,
+  reader: typeof client,
+  blockNumber?: bigint,
 ): Promise<{ raw: bigint; source: "amount" | "wallet"; wallet: string | null }> {
   if (input.wallet?.trim()) {
     if (!isAddress(input.wallet.trim())) throw new Error("INVALID_WALLET");
     const wallet = input.wallet.trim() as Address;
-    const raw = await client.readContract({
+    const raw = await reader.readContract({
       address: token.token,
       abi: erc20Abi,
       functionName: "balanceOf",
       args: [wallet],
+      blockNumber,
     });
     if (raw <= 0n) throw new Error("EMPTY_WALLET");
     return { raw, source: "wallet", wallet };
@@ -170,49 +173,62 @@ async function resolveAmount(
 
   const amount = cleanDecimal(input.amount);
   if (!amount) throw new Error("INVALID_AMOUNT");
+  if ((amount.split(".")[1]?.length ?? 0) > token.decimals) throw new Error("INVALID_AMOUNT");
   const raw = parseUnits(amount, token.decimals);
   if (raw <= 0n || raw > BigInt(token.totalSupply)) throw new Error("INVALID_AMOUNT");
   return { raw, source: "amount", wallet: null };
 }
 
-export async function buildExitReport(input: QuoteRequest): Promise<ExitReport> {
-  if (!isAddress(input.token?.trim() ?? "")) throw new Error("INVALID_TOKEN");
+export async function buildExitReport(rawInput: unknown, dependencies = { json: fetchJson, reader: client }): Promise<ExitReport> {
+  const input = validateInput(rawInput);
+  const { json, reader } = dependencies;
   const address = input.token.trim() as Address;
 
   const [token, price, dex] = await Promise.all([
-    fetchJson<PonsToken>(`${PONS_API}/token/${address}`),
-    fetchJson<PonsPrice>(`${PONS_API}/token/${address}/price`),
-    fetchJson<{ pairs: DexPair[] | null }>(`${DEX_API}/${address}`).catch(() => ({ pairs: [] })),
+    json<PonsToken>(`${PONS_API}/token/${address}`),
+    json<PonsPrice>(`${PONS_API}/token/${address}/price`),
+    json<{ pairs: DexPair[] | null }>(`${DEX_API}/${address}`).catch(() => ({ pairs: [] })),
   ]);
 
   if (!token.ok) throw new Error("NOT_PONS_V2");
-  const position = await resolveAmount(input, token);
+  if (!isAddress(token.token) || token.token.toLowerCase() !== address.toLowerCase() || !Number.isInteger(token.decimals) || token.decimals < 0 || token.decimals > 36 || !/^\d+$/.test(token.totalSupply)) throw new Error("INVALID_UPSTREAM");
+  const blockNumber = token.phase === 0 || input.wallet ? await reader.getBlockNumber() : undefined;
+  const position = await resolveAmount(input, token, reader, blockNumber);
   const pair = selectPair(dex.pairs ?? [], address, price.poolId);
   const tokenPriceUsd = toNumber(pair?.priceUsd);
-  const priceInPair = toNumber(price.priceInPair ?? price.priceEth ?? pair?.priceNative);
+  const priceInPair = toNumber(pair?.priceNative ?? price.priceInPair ?? price.priceEth);
   const pairLabel = token.pairTokenLabel || pair?.quoteToken?.symbol || "QUOTE";
   const pairDecimals =
-    token.pairToken.toLowerCase() === ZERO_ADDRESS
+    token.phase !== 0 || token.pairToken.toLowerCase() === ZERO_ADDRESS
       ? 18
       : Number(
-          await client.readContract({
+          await reader.readContract({
             address: token.pairToken,
             abi: erc20Abi,
             functionName: "decimals",
+            blockNumber,
           }),
         );
 
   if (token.phase === 0) {
-    const [[quoteReserve, tokenReserve], curveFee] = await Promise.all([
-      client.readContract({ address: token.curve, abi: curveAbi, functionName: "getReserves" }),
-      client.readContract({ address: token.curve, abi: curveAbi, functionName: "feeBps" }),
+    const [reserves, feeValue, taxValue, realValue, ready] = await Promise.all([
+      reader.readContract({ address: token.curve, abi: curveAbi, functionName: "getReserves", blockNumber }),
+      reader.readContract({ address: token.curve, abi: curveAbi, functionName: "feeBps", blockNumber }),
+      reader.readContract({ address: token.curve, abi: curveAbi, functionName: "creatorTaxBps", blockNumber }),
+      reader.readContract({ address: token.curve, abi: curveAbi, functionName: "realQuoteReserve", blockNumber }),
+      reader.readContract({ address: token.curve, abi: curveAbi, functionName: "readyToGraduate", blockNumber }),
     ]);
-    const totalFeeBps = Number(curveFee) + token.creatorTaxBps;
-    const currentPrice = priceInPair ?? Number(formatUnits(quoteReserve, pairDecimals)) / Number(formatUnits(tokenReserve, token.decimals));
+    const [quoteReserve, tokenReserve] = reserves as readonly [bigint, bigint];
+    if (ready) throw new Error("UNSUPPORTED_PHASE");
+    if (quoteReserve <= 0n || tokenReserve <= 0n) throw new Error("NO_MARKET");
+    const curveFee = Number(feeValue), creatorTax = Number(taxValue);
+    const totalFeeBps = curveFee + creatorTax;
+    if (constantProductOut(position.raw, tokenReserve, quoteReserve) > (realValue as bigint)) throw new Error("INSUFFICIENT_RESERVES");
+    const currentPrice = Number(formatUnits(quoteReserve, pairDecimals)) / Number(formatUnits(tokenReserve, token.decimals));
     const quoteUsd = tokenPriceUsd && currentPrice ? tokenPriceUsd / currentPrice : null;
     const quotes = FRACTIONS.map((fraction) => {
       const amountRaw = fractionRaw(position.raw, fraction);
-      const outputRaw = curveSellQuote(amountRaw, tokenReserve, quoteReserve, totalFeeBps);
+      const outputRaw = curveSellQuote(amountRaw, tokenReserve, quoteReserve, curveFee, creatorTax);
       const tokenAmount = Number(formatUnits(amountRaw, token.decimals));
       const proceedsQuote = Number(formatUnits(outputRaw, pairDecimals));
       const spotValueQuote = currentPrice ? tokenAmount * currentPrice : null;
@@ -228,6 +244,7 @@ export async function buildExitReport(input: QuoteRequest): Promise<ExitReport> 
     });
     return {
       observedAt: new Date().toISOString(),
+      evidence: { mode: "live", blockNumber: blockNumber?.toString() ?? null, poolId: null, sources: [PONS_API, RPC_URL] },
       token: { address, name: token.name, symbol: token.symbol, decimals: token.decimals },
       position: {
         source: position.source,
@@ -256,13 +273,14 @@ export async function buildExitReport(input: QuoteRequest): Promise<ExitReport> 
   }
 
   if (token.phase !== 2) throw new Error("UNSUPPORTED_PHASE");
-  if (!pair?.liquidity?.base || !pair?.liquidity?.quote) throw new Error("NO_MARKET");
+  if (!pair || !(toNumber(pair.liquidity?.base)! > 0) || !(toNumber(pair.liquidity?.quote)! > 0) || !(toNumber(pair.priceNative)! > 0)) throw new Error("NO_MARKET");
+  if (!Number.isInteger(token.creatorTaxBps) || token.creatorTaxBps < 0 || !Number.isInteger(price.lpFeeBps) || price.lpFeeBps! < 0) throw new Error("INVALID_FEES");
 
   const totalFeeBps = PLATFORM_FEE_BPS + token.creatorTaxBps + Number(price.lpFeeBps ?? 0);
   const quoteUsd = tokenPriceUsd && priceInPair ? tokenPriceUsd / priceInPair : null;
-  const positionAmount = Number(formatUnits(position.raw, token.decimals));
   const quotes = FRACTIONS.map((fraction) => {
-    const tokenAmountNumber = positionAmount * fraction;
+    const tokenAmount = formatUnits(fractionRaw(position.raw, fraction), token.decimals);
+    const tokenAmountNumber = Number(tokenAmount);
     const proceedsQuote = marketDepthQuote(
       tokenAmountNumber,
       Number(pair.liquidity!.base),
@@ -272,7 +290,7 @@ export async function buildExitReport(input: QuoteRequest): Promise<ExitReport> 
     const spotValueQuote = priceInPair ? tokenAmountNumber * priceInPair : null;
     return {
       fraction,
-      tokenAmount: String(tokenAmountNumber),
+      tokenAmount,
       spotValueQuote,
       proceedsQuote,
       spotValueUsd: tokenPriceUsd ? tokenAmountNumber * tokenPriceUsd : null,
@@ -283,6 +301,7 @@ export async function buildExitReport(input: QuoteRequest): Promise<ExitReport> 
 
   return {
     observedAt: new Date().toISOString(),
+    evidence: { mode: "live", blockNumber: blockNumber?.toString() ?? null, poolId: pair.pairAddress, sources: [PONS_API, DEX_API] },
     token: { address, name: token.name, symbol: token.symbol, decimals: token.decimals },
     position: {
       source: position.source,
@@ -296,14 +315,14 @@ export async function buildExitReport(input: QuoteRequest): Promise<ExitReport> 
       pairLabel,
       priceInPair,
       priceUsd: tokenPriceUsd,
-      liquidityUsd: toNumber(pair.liquidity.usd),
+      liquidityUsd: toNumber(pair.liquidity?.usd),
       volume24hUsd: toNumber(pair.volume?.h24),
       totalFeeBps,
     },
     method: {
       precision: "market-depth-estimate",
       label: "Published pool-depth estimate",
-      note: "Estimated from the canonical pool's published token and quote depth. Concentrated-liquidity routing and state changes can alter execution.",
+      note: "Constant-product approximation of published canonical pool depth, with a 1% platform-fee assumption plus reported creator and LP fees. Not a Uniswap v4 executable quote; concentrated liquidity, gas and changing state can alter proceeds.",
     },
     quotes,
     links: { explorer: token.blockscoutUrl, market: pair.url },

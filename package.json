@@ -1,19 +1,24 @@
 {
   "name": "hop-out",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Read-only exit-liquidity estimator for Pons V2 tokens on Robinhood Chain.",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
-    "install:ci": "node scripts/install-ci.mjs",
+    "install:ci": "pnpm install --frozen-lockfile",
+    "build:cli": "tsc -p tsconfig.cli.json",
+    "hop": "node bin/hop-out.mjs",
+    "demo": "pnpm build:cli && node bin/hop-out.mjs demo",
+    "doctor": "node bin/hop-out.mjs doctor",
+    "typecheck": "tsc --noEmit",
     "dev": "vinext dev --port 5173",
     "build": "vinext build",
     "start": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js dev --config dist/server/wrangler.json --local --persist-to .wrangler/state --ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "test": "node --test test/*.test.mjs",
-    "check": "pnpm run test && pnpm run build",
+    "test": "pnpm build:cli && node --test test/*.test.mjs",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

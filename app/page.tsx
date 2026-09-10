@@ -1,9 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Check, ChevronRight, Copy, ExternalLink, LoaderCircle, ShieldCheck, Terminal } from "lucide-react";
 import type { ExitReport, QuoteError } from "@/lib/hopout/types";
+import { demoReport } from "@/lib/hopout/demo";
+import { validateInput } from "@/lib/hopout/input";
+import { renderReceipt } from "@/lib/hopout/receipt";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const SAMPLE_TOKEN = "0xac79255f6f404eba14f316e8669d76573a2d7b1e";
 const SAMPLE_AMOUNT = "1000000";
@@ -52,12 +56,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [recent, setRecent] = useState<RecentCheck[]>([]);
+  const busy = useRef(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       try {
         const saved = JSON.parse(localStorage.getItem("hop-out-recent") || "[]");
-        if (Array.isArray(saved)) setRecent(saved.slice(0, 4));
+        if (Array.isArray(saved)) setRecent(saved.filter((item) => item && typeof item.address === "string" && /^0x[0-9a-fA-F]{40}$/.test(item.address) && typeof item.symbol === "string" && typeof item.checkedAt === "string").slice(0, 4));
       } catch { /* local history is optional */ }
     }, 0);
     return () => window.clearTimeout(timer);
@@ -81,16 +86,15 @@ export default function Home() {
         required: ["token"],
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: true, untrustedContentHint: true },
+      annotations: { readOnlyHint: false, untrustedContentHint: true },
       async execute(input: unknown) {
-        const value = input as { token?: unknown; amount?: unknown; wallet?: unknown };
-        if (typeof value.token !== "string" || (typeof value.amount !== "string" && typeof value.wallet !== "string")) {
-          throw new Error("Provide token and either amount or wallet as strings.");
-        }
+        const value = validateInput(input);
+        if (busy.current) throw new Error("An inspection is already running.");
+        busy.current = true;
         const nextMode: Mode = typeof value.wallet === "string" ? "wallet" : "amount";
         setMode(nextMode); setToken(value.token);
         if (nextMode === "wallet") setWallet(value.wallet as string); else setAmount(value.amount as string);
-        setLoading(true); setError("");
+        setLoading(true); setError(""); setReport(null);
         try {
           const nextReport = await requestQuote({ token: value.token, ...(nextMode === "wallet" ? { wallet: value.wallet as string } : { amount: value.amount as string }) });
           setReport(nextReport);
@@ -103,7 +107,7 @@ export default function Home() {
         } catch (caught) {
           const message = caught instanceof Error ? caught.message : "Could not inspect this token.";
           setError(message); throw new Error(message);
-        } finally { setLoading(false); }
+        } finally { busy.current = false; setLoading(false); }
       },
     }, { signal: lifecycle.signal })).catch(() => undefined);
     return () => lifecycle.abort();
@@ -112,24 +116,36 @@ export default function Home() {
   const fullQuote = report?.quotes.find((quote) => quote.fraction === 1) ?? null;
   const fullVerdict = useMemo(() => verdict(fullQuote?.haircutPct ?? null), [fullQuote?.haircutPct]);
 
-  async function inspect() {
+  async function inspect(inputMode: Mode = mode) {
+    if (busy.current) return;
+    busy.current = true;
+    setMode(inputMode);
+    document.querySelector("#terminal")?.scrollIntoView();
     setLoading(true); setError(""); setReport(null);
     try {
-      const payload = await requestQuote({ token: token.trim(), ...(mode === "amount" ? { amount: amount.trim() } : { wallet: wallet.trim() }) });
+      const payload = await requestQuote({ token: token.trim(), ...(inputMode === "amount" ? { amount: amount.trim() } : { wallet: wallet.trim() }) });
       setReport(payload);
       const next = [{ address: payload.token.address, symbol: payload.token.symbol, checkedAt: payload.observedAt }, ...recent.filter((item) => item.address !== payload.token.address)].slice(0, 4);
-      setRecent(next); localStorage.setItem("hop-out-recent", JSON.stringify(next));
+      setRecent(next);
+      try { localStorage.setItem("hop-out-recent", JSON.stringify(next)); } catch { /* storage is optional */ }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not inspect this token.");
-    } finally { setLoading(false); }
+    } finally { busy.current = false; setLoading(false); }
   }
 
   function loadSample() { setMode("amount"); setToken(SAMPLE_TOKEN); setAmount(SAMPLE_AMOUNT); setError(""); }
 
+  function loadDemo() {
+    if (busy.current) return;
+    setReport(demoReport()); setError("");
+    document.querySelector("#terminal")?.scrollIntoView();
+  }
+
   async function copyReceipt() {
     if (!report || !fullQuote) return;
-    const line = [`HOP OUT / ${report.token.symbol}`, `Bag: ${compact(Number(report.position.amount))} ${report.token.symbol}`, `Spot: ${money(fullQuote.spotValueUsd)}`, `Exit: ${money(fullQuote.proceedsUsd)}`, `Haircut: ${compact(fullQuote.haircutPct, 1)}%`, `Verdict: ${fullVerdict.label}`, `Observed: ${new Date(report.observedAt).toISOString()}`].join("\n");
-    await navigator.clipboard.writeText(line); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
+    try {
+      await navigator.clipboard.writeText(renderReceipt(report)); setCopied(true); window.setTimeout(() => setCopied(false), 1500);
+    } catch { setError("Clipboard unavailable. Select the receipt text to copy it manually."); }
   }
 
   return (
@@ -145,12 +161,12 @@ export default function Home() {
           <div className="eyebrow"><Terminal size={14} /> READ-ONLY EXIT LIQUIDITY TERMINAL</div>
           <h1>YOUR BAG GREW.<br /><span>THE EXIT DIDN&apos;T.</span></h1>
           <p className="hero-deck">The chart shows what your tokens are worth at the last price. HOP OUT estimates what the pool could actually pay.</p>
-          <form className="hero-quick" onSubmit={(event) => { event.preventDefault(); void inspect(); }}>
+          <form className="hero-quick" onSubmit={(event) => { event.preventDefault(); void inspect("amount"); }}>
             <input aria-label="Quick token contract" value={token} onChange={(event) => setToken(event.target.value)} placeholder="TOKEN CONTRACT  0x..." spellCheck={false} />
             <input aria-label="Quick token amount" value={amount} onChange={(event) => { setMode("amount"); setAmount(event.target.value); }} placeholder="AMOUNT" inputMode="decimal" />
             <button type="submit" disabled={loading}>{loading ? <LoaderCircle className="spin" size={18} /> : <ChevronRight size={18} />}<span>CHECK</span></button>
           </form>
-          <div className="hero-actions"><a className="primary-action" href="#terminal">OPEN FULL RECEIPT <ChevronRight size={18} /></a><button className="text-action" type="button" onClick={loadSample}>LOAD LIVE SAMPLE</button></div>
+          <div className="hero-actions"><a className="primary-action" href="#terminal">OPEN FULL RECEIPT <ChevronRight size={18} /></a><button className="text-action" type="button" onClick={loadDemo} disabled={loading}>EXPLORE OFFLINE DEMO</button></div>
           <div className="trust-row"><span><ShieldCheck size={15} /> NO WALLET CONNECT</span><span>NO KEYS</span><span>NO TRADES</span></div>
         </div>
         <div className="mascot-stage" aria-label="Pixel frog approaching a tiny exit door">
@@ -165,12 +181,15 @@ export default function Home() {
       <section className="terminal-section" id="terminal">
         <div className="section-heading"><div><span>01 / TERMINAL</span><h2>PUT THE BAG ON THE SCALE.</h2></div><p>Live public data. One token, one position, four exit sizes.</p></div>
         <div className="terminal-shell">
-          <div className="terminal-bar"><span className="window-dots"><i /><i /><i /></span><span>hop-out://robinhood/inspect</span><span className="live-indicator"><i /> LIVE DATA</span></div>
+          <div className="terminal-bar"><span className="window-dots"><i /><i /><i /></span><span>hop-out://robinhood/inspect</span><span className="live-indicator"><i /> {loading ? "READING" : report?.evidence.mode === "demo" ? "SYNTHETIC DEMO" : report ? "LIVE SNAPSHOT" : "READY"}</span></div>
           <div className="terminal-grid">
             <form className="quote-form" onSubmit={(event) => { event.preventDefault(); void inspect(); }}>
               <label><span>01 — PONS V2 TOKEN CONTRACT</span><input aria-label="Token contract address" value={token} onChange={(event) => setToken(event.target.value)} placeholder="0x..." spellCheck={false} /></label>
-              <div className="mode-tabs" role="tablist" aria-label="Position input mode"><button type="button" className={mode === "amount" ? "active" : ""} onClick={() => setMode("amount")}>TOKEN AMOUNT</button><button type="button" className={mode === "wallet" ? "active" : ""} onClick={() => setMode("wallet")}>PUBLIC WALLET</button></div>
-              {mode === "amount" ? <label><span>02 — HOW MANY TOKENS?</span><input aria-label="Token amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="1000000" /></label> : <label><span>02 — PUBLIC WALLET ADDRESS</span><input aria-label="Public wallet address" value={wallet} onChange={(event) => setWallet(event.target.value)} placeholder="0x..." spellCheck={false} /></label>}
+              <Tabs value={mode} onValueChange={(value) => setMode(value as Mode)} className="position-tabs">
+                <TabsList className="mode-tabs" aria-label="Position input mode"><TabsTrigger value="amount">TOKEN AMOUNT</TabsTrigger><TabsTrigger value="wallet">PUBLIC WALLET</TabsTrigger></TabsList>
+                <TabsContent value="amount"><label><span>02 — HOW MANY TOKENS?</span><input aria-label="Token amount" inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="1000000" /></label></TabsContent>
+                <TabsContent value="wallet"><label><span>02 — PUBLIC WALLET ADDRESS</span><input aria-label="Public wallet address" value={wallet} onChange={(event) => setWallet(event.target.value)} placeholder="0x..." spellCheck={false} /></label></TabsContent>
+              </Tabs>
               <button className="inspect-button" type="submit" disabled={loading}>{loading ? <><LoaderCircle className="spin" size={18} /> READING THE POOL</> : <>INSPECT MY EXIT <ArrowUpRight size={18} /></>}</button>
               <button className="sample-button" type="button" onClick={loadSample}>USE COPY AS A LIVE SAMPLE</button>
               {error && <div className="form-error" role="alert">ERR / {error}</div>}
@@ -181,9 +200,10 @@ export default function Home() {
               {!report ? <div className="receipt-empty"><Image src="/hop-out-toad.png" alt="" width={120} height={120} /><span>WAITING FOR A BAG</span><p>Enter a contract and position.<br />The frog will measure the door.</p></div> : <>
                 <div className="receipt-head"><div><span>EXIT RECEIPT</span><h3>{report.token.name} <b>${report.token.symbol}</b></h3></div><span className={`verdict ${fullVerdict.tone}`}>{fullVerdict.label}</span></div>
                 <div className="receipt-meta"><span>{shorten(report.token.address, 7)}</span><span>{report.market.phaseLabel}</span><span>{report.method.precision === "protocol-math" ? "EXACT CURVE MATH" : "DEPTH ESTIMATE"}</span></div>
+                <p className="snapshot-note">{report.evidence.mode === "demo" ? "SYNTHETIC EXAMPLE · NOT A LIVE TOKEN" : `SNAPSHOT · ${new Date(report.observedAt).toLocaleString()}`}{report.evidence.blockNumber && ` · BLOCK ${report.evidence.blockNumber}`}</p>
                 <div className="headline-numbers"><div><span>SCREEN VALUE</span><strong>{money(fullQuote?.spotValueUsd ?? null)}</strong><small>{compact(fullQuote?.spotValueQuote ?? null)} {report.market.pairLabel}</small></div><div className="arrow-cell">→</div><div><span>EST. EXIT</span><strong>{money(fullQuote?.proceedsUsd ?? null)}</strong><small>{compact(fullQuote?.proceedsQuote ?? null)} {report.market.pairLabel}</small></div></div>
                 <div className="haircut-line"><span>THE DOOR TAKES</span><strong>{compact(fullQuote?.haircutPct ?? null, 1)}%</strong></div>
-                <div className="quote-table"><div className="quote-row table-head"><span>SELL</span><span>SPOT</span><span>YOU GET</span><span>HAIRCUT</span></div>{report.quotes.map((quote) => <div className="quote-row" key={quote.fraction}><span>{quote.fraction * 100}%</span><span>{money(quote.spotValueUsd)}</span><span>{money(quote.proceedsUsd)}</span><span className={(quote.haircutPct ?? 0) >= 15 ? "hot" : ""}>{compact(quote.haircutPct, 1)}%</span></div>)}</div>
+                <table className="quote-table"><caption className="sr-only">Estimated proceeds by sale size</caption><thead><tr><th scope="col">SELL</th><th scope="col">SPOT</th><th scope="col">YOU GET</th><th scope="col">HAIRCUT</th></tr></thead><tbody>{report.quotes.map((quote) => <tr key={quote.fraction}><th scope="row">{quote.fraction * 100}%</th><td>{quote.spotValueUsd == null ? `${compact(quote.spotValueQuote, 8)} ${report.market.pairLabel}` : money(quote.spotValueUsd)}</td><td>{quote.proceedsUsd == null ? `${compact(quote.proceedsQuote, 8)} ${report.market.pairLabel}` : money(quote.proceedsUsd)}</td><td className={(quote.haircutPct ?? 0) >= 15 ? "hot" : ""}>{compact(quote.haircutPct, 1)}%</td></tr>)}</tbody></table>
                 <div className="receipt-facts"><span>POOL LIQUIDITY <b>{money(report.market.liquidityUsd)}</b></span><span>24H VOLUME <b>{money(report.market.volume24hUsd)}</b></span><span>FEES MODELED <b>{(report.market.totalFeeBps / 100).toFixed(2)}%</b></span></div>
                 <p className="method-note">{report.method.note}</p>
                 <div className="receipt-actions"><button type="button" onClick={() => void copyReceipt()}>{copied ? <Check size={15} /> : <Copy size={15} />}{copied ? "COPIED" : "COPY RECEIPT"}</button>{report.links.market && <a href={report.links.market} target="_blank" rel="noreferrer">OPEN MARKET <ExternalLink size={14} /></a>}</div>

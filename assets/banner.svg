@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="440" viewBox="0 0 1440 440" role="img" aria-labelledby="title desc">
+  <title id="title">HOP OUT — Big bag. Small door.</title>
+  <desc id="desc">Exit liquidity terminal for Robinhood Chain. Open source, read-only, local CLI and browser.</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M 24 0 L 0 0 0 24" fill="none" stroke="#caff38" stroke-opacity=".09"/></pattern>
+    <linearGradient id="fade"><stop stop-color="#caff38" stop-opacity=".1"/><stop offset="1" stop-color="#caff38" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="1440" height="440" fill="#070b07"/><rect width="1440" height="440" fill="url(#grid)"/>
+  <rect x="32" y="32" width="1376" height="376" fill="none" stroke="#3b472b"/>
+  <rect x="32" y="32" width="8" height="376" fill="#caff38"/>
+  <rect x="40" y="32" width="1368" height="376" fill="url(#fade)"/>
+  <g font-family="Courier New,monospace">
+    <text x="90" y="97" fill="#a7b392" font-size="17" letter-spacing="4">ROBINHOOD CHAIN / EXIT LIQUIDITY TERMINAL</text>
+    <text x="93" y="248" fill="#526822" font-size="140" font-weight="900" letter-spacing="-6">HOP OUT</text>
+    <text x="86" y="241" fill="#caff38" font-size="140" font-weight="900" letter-spacing="-6">HOP OUT</text>
+    <text x="90" y="307" fill="#f2f6e8" font-size="28" font-weight="700" letter-spacing="3">BIG BAG. SMALL DOOR.</text>
+    <text x="90" y="363" fill="#a7b392" font-size="16" letter-spacing="2">LIVE INSPECTION · OFFLINE DEMO · TRACEABLE RECEIPTS</text>
+    <text x="1130" y="116" fill="#caff38" font-size="16">SELL SIZE</text>
+    <text x="1130" y="177" fill="#f2f6e8" font-size="32">10%</text><path d="M1130 191H1210" stroke="#caff38" stroke-width="8"/>
+    <text x="1130" y="242" fill="#f2f6e8" font-size="32">50%</text><path d="M1130 256H1260" stroke="#caff38" stroke-width="8"/>
+    <text x="1130" y="307" fill="#f2f6e8" font-size="32">100%</text><path d="M1130 321H1330" stroke="#caff38" stroke-width="8"/>
+  </g>
+</svg>

@@ -16,15 +16,15 @@ HOP OUT has one memorable idea: **a bag can look large while its exit is small**
 ### T-24h — problem teaser
 
 ```text
-Your wallet says the bag is worth $47,000.
-The pool might say $8,400.
+Your wallet shows a big bag.
+The pool has a smaller door.
 
-Only one of those numbers can pay you.
+Spot value is not exit value.
 
 Tomorrow, the frog measures the door. 🐸
 ```
 
-Attach a cropped receipt showing the gap. Do not show a token contract yet.
+Attach a cropped receipt showing the gap. Keep its DEMO label if using invented data; otherwise retain the live observation time. Do not show a token contract yet.
 
 ### T-12h — product reveal
 
@@ -41,7 +41,7 @@ No wallet connect. No keys. No trades.
 BIG BAG. SMALL DOOR.
 ```
 
-Link the site and GitHub repository. Pin this post.
+Link the site and GitHub repository. Pin this post. The current Sites preview is owner-private; do not promote it as publicly usable until public hosting is configured and verified.
 
 ### T-3h — live receipt
 
