@@ -63,7 +63,7 @@ Open the web terminal with:
 pnpm dev
 ```
 
-Visit `http://localhost:5173`. Use **EXPLORE OFFLINE DEMO** or enter a real contract and position.
+Visit `http://localhost:5173` for the project landing page, then open `/terminal` to run the read-only tool. Use **OFFLINE DEMO** or enter a real contract and position.
 
 ## Live inspection
 
