@@ -1279,6 +1279,18 @@ footer span:last-child { justify-self:end; }
 }
 .holder-connect-button:hover:not(:disabled) { background:var(--yellow); }
 .holder-connect-button:disabled { opacity:.68; cursor:wait; }
+.holder-entry { margin-top:34px; }
+.holder-entry .holder-connect-button { margin-top:0; }
+.holder-entry-divider { margin:14px 0; display:flex; align-items:center; gap:10px; color:#65715f; font-size:9px; letter-spacing:.06em; }
+.holder-entry-divider::before,.holder-entry-divider::after { content:""; height:1px; flex:1; background:#2e3e2a; }
+.holder-address-form { display:grid; grid-template-columns:minmax(0,1fr) auto; border:1px solid #34452f; background:#060a06; }
+.holder-address-form:focus-within { border-color:var(--acid); box-shadow:inset 3px 0 0 var(--acid); }
+.holder-address-form input { min-width:0; height:46px; padding:0 12px; border:0; outline:0; background:transparent; color:#dfe6da; font-family:inherit; font-size:12px; }
+.holder-address-form input::placeholder { color:#687363; }
+.holder-address-form button { min-width:92px; padding:0 13px; display:flex; align-items:center; justify-content:center; gap:7px; border-left:1px solid #34452f; background:#0b1209; color:var(--acid); cursor:pointer; font-size:10px; font-weight:900; }
+.holder-address-form button:hover:not(:disabled) { background:var(--acid); color:#071006; }
+.holder-address-form button:disabled { color:#566050; cursor:not-allowed; }
+.holder-address-note { margin:8px 0 0; color:#71806a; font-size:9px; letter-spacing:.05em; text-align:right; }
 .holder-example-button { width:100%; min-height:42px; margin-top:10px; border:1px solid #3c5035; background:#091008; color:#a9b5a2; cursor:pointer; font-size:11px; font-weight:900; letter-spacing:.04em; }
 .holder-example-button:hover:not(:disabled) { border-color:var(--acid); color:var(--acid); }
 .holder-example-button:disabled { opacity:.5; cursor:wait; }
@@ -1419,6 +1431,8 @@ footer span:last-child { justify-self:end; }
   .holder-connect h1 { font-size:56px; }
   .holder-empty { min-height:430px; padding:38px 18px; flex-direction:column; text-align:center; }
   .holder-empty img { width:88px; height:88px; }
+  .holder-address-form { grid-template-columns:1fr; }
+  .holder-address-form button { min-height:42px; border-top:1px solid #34452f; border-left:0; }
   .holder-identity { grid-template-columns:1fr 1fr; }
   .holder-identity>div:nth-child(3) { border-left:0; border-top:1px solid var(--line); }
   .holder-identity>div:nth-child(4) { border-top:1px solid var(--line); }

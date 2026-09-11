@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 — 2026-09-11
+
+- Added Public Address Mode to Holder Check.
+- Holders can now paste any valid EVM address and run the full $HOPOUT receipt without an injected browser wallet.
+- Added immediate address validation and a responsive connect-or-paste entry flow.
+
 ## 0.5.0 — 2026-09-11
 
 - Added an interactive 5% / 10% / 15% / 20% Exit Limit to Holder Mode.

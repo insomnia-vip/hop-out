@@ -3,7 +3,8 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, ExternalLink, LoaderCircle, RefreshCw, ShieldCheck, Wallet, X } from "lucide-react";
+import type { FormEvent } from "react";
+import { ArrowLeft, Check, ExternalLink, LoaderCircle, RefreshCw, Search, ShieldCheck, Wallet, X } from "lucide-react";
 import { TokenContract } from "@/components/token-contract";
 import { PROJECT_LINKS } from "@/lib/hopout/links";
 import type { ExitReport, QuoteRow } from "@/lib/hopout/types";
@@ -91,6 +92,7 @@ function exampleHolderReport(): ExitReport {
 
 export default function HoldersPage() {
   const [wallet, setWallet] = useState("");
+  const [manualAddress, setManualAddress] = useState("");
   const [report, setReport] = useState<ExitReport | null>(null);
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [costBasis, setCostBasis] = useState("");
@@ -143,6 +145,7 @@ export default function HoldersPage() {
     const handleAccounts = (accounts: string[]) => {
       const address = typeof accounts[0] === "string" ? accounts[0] : "";
       setWallet(address);
+      if (address) setManualAddress("");
       setReport(null);
       setError("");
       if (address) void runCheck(address);
@@ -156,7 +159,7 @@ export default function HoldersPage() {
 
   async function connect() {
     if (!window.ethereum) {
-      setError("No browser wallet found. Install an EVM wallet or use the terminal with a public address.");
+      setError("No browser wallet found. Paste a public EVM address below instead.");
       return;
     }
     setConnecting(true);
@@ -166,6 +169,7 @@ export default function HoldersPage() {
       const address = Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0] : "";
       if (!address) throw new Error("No account was returned by the wallet.");
       setWallet(address);
+      setManualAddress("");
       void runCheck(address);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Wallet connection was cancelled.");
@@ -176,6 +180,7 @@ export default function HoldersPage() {
 
   function clearWallet() {
     setWallet("");
+    setManualAddress("");
     setReport(null);
     setError("");
     setCostBasis("");
@@ -188,9 +193,21 @@ export default function HoldersPage() {
       return;
     }
     setWallet("");
+    setManualAddress("");
     setError("");
     setCostBasis("3800");
     setReport(exampleHolderReport());
+  }
+
+  function checkManualAddress(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const address = manualAddress.trim();
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      setError("Enter a valid 42-character EVM address.");
+      return;
+    }
+    setWallet(address);
+    void runCheck(address);
   }
 
   const full = report?.quotes.find((quote) => quote.fraction === 1) ?? null;
@@ -244,19 +261,40 @@ export default function HoldersPage() {
         <aside className="holder-connect">
           <p className="section-index">01 / IDENTIFY THE HOLDER</p>
           <h1>CONNECT.<br /><span>CHECK THE DOOR.</span></h1>
-          <p className="holder-lead">Connect an EVM wallet. HOP OUT uses only its public address to read the official $HOPOUT balance on Robinhood Chain.</p>
+          <p className="holder-lead">Connect an EVM wallet or paste any public address. HOP OUT reads only the official $HOPOUT balance on Robinhood Chain.</p>
 
           <TokenContract className="holder-token-ca" />
           <a className="holder-token-link" href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer">VIEW OFFICIAL TOKEN ON PONS <ExternalLink size={12} /></a>
 
           {!wallet ? (
-            <button className="holder-connect-button" type="button" onClick={() => void connect()} disabled={connecting}>
-              {connecting ? <LoaderCircle className="spin" size={18} /> : <Wallet size={18} />}
-              {connecting ? "WAITING FOR WALLET..." : "CONNECT WALLET"}
-            </button>
+            <div className="holder-entry">
+              <button className="holder-connect-button" type="button" onClick={() => void connect()} disabled={connecting}>
+                {connecting ? <LoaderCircle className="spin" size={18} /> : <Wallet size={18} />}
+                {connecting ? "WAITING FOR WALLET..." : "CONNECT WALLET"}
+              </button>
+              <div className="holder-entry-divider"><span>OR CHECK A PUBLIC ADDRESS</span></div>
+              <form className="holder-address-form" onSubmit={checkManualAddress}>
+                <label className="sr-only" htmlFor="holder-public-address">Public EVM wallet address</label>
+                <input
+                  id="holder-public-address"
+                  type="text"
+                  inputMode="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={manualAddress}
+                  onChange={(event) => setManualAddress(event.target.value)}
+                  placeholder="0x... public address"
+                  disabled={loading}
+                />
+                <button type="submit" disabled={loading || configured === false || manualAddress.trim() === ""}>
+                  {loading ? <LoaderCircle className="spin" size={15} /> : <Search size={15} />} CHECK
+                </button>
+              </form>
+              <p className="holder-address-note">V0.6 / NO BROWSER WALLET REQUIRED</p>
+            </div>
           ) : (
             <div className="holder-wallet-card">
-              <div><span>CONNECTED ADDRESS</span><b><i /><code>{short(wallet, 8)}</code></b></div>
+              <div><span>ACTIVE PUBLIC ADDRESS</span><b><i /><code>{short(wallet, 8)}</code></b></div>
               <p>{wallet}</p>
               <div className="holder-wallet-actions">
                 <button type="button" onClick={() => void runCheck(wallet)} disabled={loading || !configured}><RefreshCw className={loading ? "spin" : ""} size={14} /> CHECK AGAIN</button>
@@ -403,7 +441,7 @@ export default function HoldersPage() {
                     ? "The official $HOPOUT contract could not be loaded by this build."
                     : error
                       ? error
-                      : "Connect a wallet to compare its $HOPOUT screen value with estimated proceeds at 10%, 25%, 50% and 100%."
+                      : "Connect a wallet or paste a public address to compare its $HOPOUT screen value with estimated proceeds at 10%, 25%, 50% and 100%."
                 }</p>
               </div>
             </div>
@@ -412,7 +450,7 @@ export default function HoldersPage() {
       </section>
 
       <footer className="holder-footer">
-        <span>$HOPOUT / HOLDER MODE / V0.5</span>
+        <span>$HOPOUT / HOLDER MODE / V0.6</span>
         <a href="/terminal">CHECK ANOTHER TOKEN ↗</a>
         <span>ESTIMATE ONLY / NO TRADES</span>
       </footer>

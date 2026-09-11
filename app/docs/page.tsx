@@ -50,7 +50,7 @@ export default function DocsPage() {
 
         <article className="docs-main">
           <section className="docs-intro" id="overview">
-            <p className="section-index">HOP OUT / V0.5 DOCUMENTATION</p>
+            <p className="section-index">HOP OUT / V0.6 DOCUMENTATION</p>
             <h1>READ THE DOOR.<br />THEN DECIDE.</h1>
             <p>HOP OUT is an exit-liquidity tool for Pons V2 tokens on Robinhood Chain. It compares a position&apos;s spot value with estimated proceeds at four independent sale sizes.</p>
             <a className="primary-cta" href="/terminal"><Terminal size={17} /> RUN THE TOOL <ArrowRight size={17} /></a>
@@ -60,7 +60,7 @@ export default function DocsPage() {
             <div className="docs-number">02</div>
             <div>
               <h2>INPUT</h2>
-              <p>Provide a token contract plus either a token amount or a public wallet address. The separate Holder Check can request an EVM account and uses only the returned public address to read its $HOPOUT balance.</p>
+              <p>Provide a token contract plus either a token amount or a public wallet address. Holder Check can request an EVM account or accept any manually pasted public address, then reads its $HOPOUT balance without requiring a browser wallet.</p>
               <dl className="docs-spec">
                 <div><dt>TOKEN</dt><dd>Pons V2 contract address</dd></div>
                 <div><dt>AMOUNT</dt><dd>Exact token quantity to test</dd></div>
