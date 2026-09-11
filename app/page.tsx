@@ -50,7 +50,7 @@ export default function Home() {
             Your chart prices one token. HOP OUT tests the whole position against the liquidity that has to absorb it.
           </p>
           <div className="hero-actions">
-            <a className="primary-cta" href="/terminal"><Terminal size={18} /> OPEN TERMINAL <ArrowRight size={18} /></a>
+            <a className="primary-cta hero-terminal-cta" href="/terminal"><Terminal size={18} /> OPEN TERMINAL <ArrowRight size={18} /></a>
             <a className="secondary-cta" href="/holders"><Wallet size={17} /> HOLDER CHECK</a>
             <a className="secondary-cta" href={PROJECT_LINKS.github} target="_blank" rel="noreferrer"><Code2 size={17} /> VIEW SOURCE</a>
           </div>

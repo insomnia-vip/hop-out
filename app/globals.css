@@ -345,6 +345,36 @@ footer span:last-child { justify-self:end; }
 }
 .primary-cta { background:var(--acid); color:#071006; }
 .primary-cta:hover { background:var(--yellow); transform:translateY(-2px); }
+.hero-terminal-cta {
+  position:relative;
+  isolation:isolate;
+  border-color:#efffc5;
+  background:linear-gradient(105deg,var(--acid) 0%,#efff8f 46%,var(--acid) 100%);
+  background-size:220% 100%;
+  box-shadow:0 0 0 2px #071006,0 0 0 3px rgba(202,255,56,.7),0 0 24px rgba(202,255,56,.28);
+  animation:terminal-cta-signal 2.8s ease-in-out infinite;
+}
+.hero-terminal-cta::after {
+  content:"START HERE";
+  position:absolute;
+  top:-10px;
+  right:8px;
+  padding:2px 6px;
+  border:1px solid var(--acid);
+  background:#071006;
+  color:var(--acid);
+  font-size:9px;
+  line-height:1.35;
+  letter-spacing:.08em;
+  box-shadow:0 0 10px rgba(202,255,56,.2);
+}
+.hero-terminal-cta:hover {
+  box-shadow:0 0 0 2px #071006,0 0 0 3px var(--yellow),0 0 30px rgba(255,228,103,.38);
+}
+@keyframes terminal-cta-signal {
+  0%,100% { background-position:100% 50%; box-shadow:0 0 0 2px #071006,0 0 0 3px rgba(202,255,56,.6),0 0 18px rgba(202,255,56,.2); }
+  50% { background-position:0 50%; box-shadow:0 0 0 2px #071006,0 0 0 3px rgba(202,255,56,.85),0 0 28px rgba(202,255,56,.34); }
+}
 .secondary-cta { color:#b6c0b0; border-color:var(--line); }
 .secondary-cta:hover { color:var(--acid); border-color:var(--acid); }
 .safety-rail {
