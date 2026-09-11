@@ -45,18 +45,18 @@ export default function Home() {
 
       <section className="landing-hero">
         <div className="hero-copy">
-          <p className="landing-kicker"><span>V0.3 LIVE</span> EXIT LIQUIDITY / ROBINHOOD CHAIN 4663</p>
+          <p className="landing-kicker"><span>V0.5 READY</span> EXIT LIQUIDITY / ROBINHOOD CHAIN 4663</p>
           <h1><span>BIG BAG.</span><em>SMALL DOOR.</em></h1>
           <p className="hero-deck">
             Your chart prices one token. HOP OUT tests the whole position against the liquidity that has to absorb it.
           </p>
           <div className="hero-actions">
             <a className="primary-cta hero-terminal-cta" href="/terminal"><Terminal size={18} /> OPEN TERMINAL <ArrowRight size={18} /></a>
-            <a className="secondary-cta" href="/holders"><Wallet size={17} /> HOLDER MODE / NEW</a>
+            <a className="secondary-cta" href="/holders"><Wallet size={17} /> EXIT LIMIT / V0.5</a>
             <a className="secondary-cta" href={PROJECT_LINKS.github} target="_blank" rel="noreferrer"><Code2 size={17} /> VIEW SOURCE</a>
           </div>
           <div className="safety-rail" aria-label="Safety boundaries">
-            <span>HOLDER MODE ADDED</span><span>NO SIGNATURES</span><span>NO TRADES</span>
+            <span>EXIT LIMIT ADDED</span><span>NO SIGNATURES</span><span>NO TRADES</span>
           </div>
         </div>
 
@@ -141,7 +141,7 @@ export default function Home() {
       </section>
 
       <footer className="landing-footer">
-        <span>HOP OUT / V0.3 / 2026</span>
+        <span>HOP OUT / V0.5 / 2026</span>
         <p><ShieldCheck size={15} /> ESTIMATES, NOT EXECUTION OR FINANCIAL ADVICE</p>
         <div><a href="/docs">DOCS</a><a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div>
       </footer>

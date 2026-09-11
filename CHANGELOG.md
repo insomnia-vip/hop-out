@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.0 — 2026-09-11
+
+- Added an interactive 5% / 10% / 15% / 20% Exit Limit to Holder Mode.
+- Shows the largest tested exit size and estimated proceeds within the selected haircut ceiling.
+- Highlights the matching exit row while keeping the result clearly labelled as an estimate.
+
+## 0.4.0 — 2026-09-11
+
+- Added a live 0–100 Door Score to Holder Mode.
+- Combined current sellable capacity and full-exit haircut into OPEN, TIGHT, or NARROW exit status.
+- Added a compact segmented scanner readout across desktop and mobile.
+
 ## 0.3.0 — 2026-09-11
 
 - Added a small visible v0.3 refresh across the landing page, terminal, holder mode, and documentation.

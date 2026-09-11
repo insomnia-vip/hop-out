@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, ExternalLink, LoaderCircle, RefreshCw, ShieldCheck, Wallet, X } from "lucide-react";
 import { TokenContract } from "@/components/token-contract";
 import { PROJECT_LINKS } from "@/lib/hopout/links";
-import type { ExitReport } from "@/lib/hopout/types";
+import type { ExitReport, QuoteRow } from "@/lib/hopout/types";
 
 type EthereumProvider = {
   request(args: { method: string; params?: unknown[] }): Promise<unknown>;
@@ -94,6 +94,7 @@ export default function HoldersPage() {
   const [report, setReport] = useState<ExitReport | null>(null);
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [costBasis, setCostBasis] = useState("");
+  const [maxHaircut, setMaxHaircut] = useState(15);
   const [error, setError] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -199,6 +200,24 @@ export default function HoldersPage() {
   const exitProceeds = full ? full.proceedsUsd ?? full.proceedsQuote : null;
   const pnl = exitProceeds != null && validCost != null ? exitProceeds - validCost : null;
   const pnlPercent = pnl != null && validCost != null && validCost > 0 ? (pnl / validCost) * 100 : null;
+  const held = Number(report?.position.amount);
+  const sellable = Number(report?.position.sellableAmount);
+  const sellableCapacity = Number.isFinite(held) && held > 0 && Number.isFinite(sellable)
+    ? Math.min(1, Math.max(0, sellable / held))
+    : 0;
+  const retainedValue = full?.haircutPct == null ? null : Math.min(100, Math.max(0, 100 - full.haircutPct));
+  const doorScore = retainedValue == null ? null : Math.round(retainedValue * sellableCapacity);
+  const doorState = doorScore == null
+    ? null
+    : doorScore >= 75
+      ? { label: "OPEN", tone: "open", note: "Most of the checked value survives the modeled exit." }
+      : doorScore >= 45
+        ? { label: "TIGHT", tone: "tight", note: "The exit is usable, but size is already fighting the door." }
+        : { label: "NARROW", tone: "narrow", note: "Depth or sellable reserves heavily constrain the current exit." };
+  const exitLimitQuote = report?.quotes.reduce<QuoteRow | null>((best, quote) => {
+    if (quote.haircutPct == null || quote.haircutPct > maxHaircut) return best;
+    return best == null || quote.fraction > best.fraction ? quote : best;
+  }, null) ?? null;
   const state = useMemo(() => {
     if (loading) return ["READING POSITION", "loading"];
     if (error) return ["CHECK FAILED", "error"];
@@ -295,6 +314,46 @@ export default function HoldersPage() {
                 <div className="holder-haircut"><span>EXIT HAIRCUT</span><strong>{number(full?.haircutPct, 2)}%</strong><small>impact + modeled fees</small></div>
               </div>
 
+              {doorState && doorScore != null && (
+                <div className={`holder-door-score ${doorState.tone}`}>
+                  <div className="door-score-readout">
+                    <span>V0.4 / DOOR SCORE</span>
+                    <strong>{doorScore}<small>/100</small></strong>
+                  </div>
+                  <div className="door-score-scan">
+                    <div className="door-score-label"><b>{doorState.label}</b><span>MODELED EXIT READOUT</span></div>
+                    <div className="door-score-meter" role="progressbar" aria-label="Door Score" aria-valuemin={0} aria-valuemax={100} aria-valuenow={doorScore}>
+                      {Array.from({ length: 10 }, (_, index) => <i className={index < Math.ceil(doorScore / 10) ? "active" : ""} key={index} />)}
+                    </div>
+                    <p>{doorState.note} Score combines current sellable capacity and full-exit haircut.</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="holder-exit-limit">
+                <div className="exit-limit-head">
+                  <div><span>V0.5 / EXIT LIMIT</span><strong>HOW MUCH FITS?</strong></div>
+                  <div className="exit-limit-threshold" role="group" aria-label="Maximum exit haircut">
+                    {[5, 10, 15, 20].map((limit) => (
+                      <button key={limit} type="button" aria-pressed={maxHaircut === limit} onClick={() => setMaxHaircut(limit)}>{limit}%</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="exit-limit-result">
+                  <div>
+                    <span>MAX TESTED SIZE AT ≤{maxHaircut}% HAIRCUT</span>
+                    <strong>{exitLimitQuote ? `${exitLimitQuote.fraction * 100}%` : "BELOW 10%"}</strong>
+                    <small>{exitLimitQuote ? `${number(exitLimitQuote.tokenAmount, 6)} $${report.token.symbol}` : "no tested tranche fits this limit"}</small>
+                  </div>
+                  <div>
+                    <span>EST. PROCEEDS</span>
+                    <strong>{exitLimitQuote ? quoteValue(exitLimitQuote.proceedsUsd, exitLimitQuote.proceedsQuote, report.market.pairLabel) : "—"}</strong>
+                    <small>{exitLimitQuote ? `${number(exitLimitQuote.haircutPct, 2)}% modeled haircut` : "try a wider limit"}</small>
+                  </div>
+                  <p>Largest independent 10% / 25% / 50% / 100% check at or below your selected haircut. Estimate only—not a trade recommendation.</p>
+                </div>
+              </div>
+
               <div className={`holder-pnl ${pnl == null ? "empty" : pnl >= 0 ? "positive" : "negative"}`}>
                 <div>
                   <span>EST. EXIT P&amp;L VS YOUR COST BASIS</span>
@@ -312,7 +371,7 @@ export default function HoldersPage() {
                   <caption className="sr-only">Estimated holder proceeds by independent exit size</caption>
                   <thead><tr><th>EXIT</th><th>TOKENS</th><th>SCREEN VALUE</th><th>EST. PROCEEDS</th><th>HAIRCUT</th></tr></thead>
                   <tbody>{report.quotes.map((quote) => (
-                    <tr key={quote.fraction}>
+                    <tr className={exitLimitQuote?.fraction === quote.fraction ? "exit-limit-row" : ""} key={quote.fraction}>
                       <th scope="row">{quote.fraction * 100}%<small>{quote.fraction === 1 ? "FULL BAG" : "INDEPENDENT"}</small></th>
                       <td>{number(quote.tokenAmount, 6)}</td>
                       <td>{quote.spotValueUsd == null ? `${number(quote.spotValueQuote, 8)} ${report.market.pairLabel}` : money(quote.spotValueUsd)}</td>
@@ -353,7 +412,7 @@ export default function HoldersPage() {
       </section>
 
       <footer className="holder-footer">
-        <span>$HOPOUT / HOLDER MODE / V0.3</span>
+        <span>$HOPOUT / HOLDER MODE / V0.5</span>
         <a href="/terminal">CHECK ANOTHER TOKEN ↗</a>
         <span>ESTIMATE ONLY / NO TRADES</span>
       </footer>

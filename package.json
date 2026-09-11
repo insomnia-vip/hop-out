@@ -1,6 +1,6 @@
 {
   "name": "hop-out",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "description": "Exit-liquidity tool for Pons V2 tokens on Robinhood Chain.",
   "homepage": "https://hopout.xyz",
   "repository": {

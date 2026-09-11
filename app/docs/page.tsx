@@ -50,7 +50,7 @@ export default function DocsPage() {
 
         <article className="docs-main">
           <section className="docs-intro" id="overview">
-            <p className="section-index">HOP OUT / V0.3 DOCUMENTATION</p>
+            <p className="section-index">HOP OUT / V0.5 DOCUMENTATION</p>
             <h1>READ THE DOOR.<br />THEN DECIDE.</h1>
             <p>HOP OUT is an exit-liquidity tool for Pons V2 tokens on Robinhood Chain. It compares a position&apos;s spot value with estimated proceeds at four independent sale sizes.</p>
             <a className="primary-cta" href="/terminal"><Terminal size={17} /> RUN THE TOOL <ArrowRight size={17} /></a>
@@ -73,7 +73,7 @@ export default function DocsPage() {
             <div className="docs-number">03</div>
             <div>
               <h2>THE RECEIPT</h2>
-              <p>Every result keeps the observed market state, method label, fee assumptions, proceeds estimate, and haircut visible together.</p>
+              <p>Every result keeps the observed market state, method label, fee assumptions, proceeds estimate, and haircut visible together. Holder Mode also adds a 0–100 Door Score and an Exit Limit control for finding the largest tested size below a selected haircut.</p>
               <div className="docs-exits">
                 {exits.map(([size, name, copy]) => <div key={size}><b>{size}</b><span>{name}</span><p>{copy}</p></div>)}
               </div>
