@@ -5,6 +5,7 @@ import { validateInput } from "../.hopout-build/input.js";
 import { curveSellQuote } from "../lib/hopout/math.mjs";
 import { demoReport } from "../.hopout-build/demo.js";
 import { renderReceipt } from "../.hopout-build/receipt.js";
+import { getHopOutContract } from "../.hopout-build/project-token.js";
 
 const token = "0x0000000000000000000000000000000000000001";
 const quote = "0x0000000000000000000000000000000000000000";
@@ -61,4 +62,10 @@ test("offline demo is visibly synthetic and its export keeps provenance", () => 
   assert.deepEqual(result.evidence.sources, []);
   assert.match(renderReceipt(result, true), /DEMO/);
   assert.match(renderReceipt(result), /synthetic offline fixture/);
+});
+
+test("holder mode activates only with a valid configured contract", () => {
+  assert.equal(getHopOutContract({}), null);
+  assert.equal(getHopOutContract({ HOPOUT_CONTRACT_ADDRESS: "pending" }), null);
+  assert.equal(getHopOutContract({ HOPOUT_CONTRACT_ADDRESS: `  ${token}  ` }), token);
 });

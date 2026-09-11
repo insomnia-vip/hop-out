@@ -1,22 +1,24 @@
 # Architecture
 
 ```text
-browser / WebMCP
-       |
-       v
-POST /api/quote
-       |
-       +-- Pons Portal API ---- launch phase, curve, fee metadata, pool id
-       +-- Robinhood RPC ------ balances and live on-chain curve state
-       +-- DexScreener API ---- graduated-pool depth and USD references
-       |
-       v
-deterministic quote rows (10 / 25 / 50 / 100%)
+terminal / WebMCP ----------------------> POST /api/quote
+holder page -- public address only ----> POST /api/holder
+                    |                            |
+                    |                    verified $HOPOUT CA gate
+                    |                            |
+                    +-------------+--------------+
+                                  |
+                                  +-- Pons Portal API ---- launch phase, curve, fee metadata, pool id
+                                  +-- Robinhood RPC ------ balances and live on-chain curve state
+                                  +-- DexScreener API ---- graduated-pool depth and USD references
+                                  |
+                                  v
+                    deterministic quote rows (10 / 25 / 50 / 100%)
 ```
 
-The browser never talks to a wallet provider. Secrets are not required. Browser requests use the server route; the local CLI calls the same engine directly and needs no running website. Both produce one normalized, timestamped receipt.
+The terminal never talks to a wallet provider. The separate Holder Check can ask an injected EVM wallet for an account, then passes only that public address to the server. It does not request a signature, approval, transaction, private key, or network switch. Secrets are not required. Browser requests use server routes; the local CLI calls the same engine directly and needs no running website. Both quote paths produce one normalized, timestamped receipt.
 
-The math lives in `lib/hopout/math.mjs`; orchestration and source selection live in `lib/hopout/quote.ts`; response mapping lives in `app/api/quote/route.ts`.
+The math lives in `lib/hopout/math.mjs`; orchestration and source selection live in `lib/hopout/quote.ts`; response mapping lives in `app/api/quote/route.ts` and `app/api/holder/route.ts`. The holder route is gated by a validated `HOPOUT_CONTRACT_ADDRESS` through `lib/hopout/project-token.ts`.
 
 `bin/hop-out.mjs` dispatches CLI commands. `tsconfig.cli.json` compiles the shared engine into ignored `.hopout-build/`. The isolated demo creates a synthetic receipt without importing provider execution. JSON/Markdown exports use exclusive file creation, preserving existing files.
 

@@ -2,7 +2,7 @@
 
 `pnpm check` checks types, lint, deterministic tests and the production website bundle. CI runs the same command on Node 22 and 24.
 
-The fixture suite covers malformed and ambiguous input, excessive decimals, canonical pool selection, consistent price/depth sources, block-pinned curve reads, insufficient physical reserves, fee rounding, and CLI command errors. Fixtures do not hit public providers. The demo is synthetic and has an empty source list.
+The fixture suite covers malformed and ambiguous input, excessive decimals, canonical pool selection, consistent price/depth sources, block-pinned curve reads, insufficient physical reserves, fee rounding, CLI command errors, and the verified-contract gate used by Holder Check. Fixtures do not hit public providers. The demo is synthetic and has an empty source list.
 
 Live verification is separate:
 

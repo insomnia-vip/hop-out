@@ -36,7 +36,7 @@ A read-only exit-liquidity terminal for Pons V2 tokens on Robinhood Chain.
 Paste a token + amount (or public wallet).
 See what selling 10 / 25 / 50 / 100% could actually return.
 
-No wallet connect. No keys. No trades.
+Core terminal: no wallet connect. Holder Check: public address only. No signatures or trades.
 
 BIG BAG. SMALL DOOR.
 ```
@@ -71,7 +71,7 @@ App: [SITE]
 Code: [GITHUB]
 CA: [CONTRACT]
 
-No wallet connect. Read-only. Open source.
+Optional address connect. No signatures. Read-only. Open source.
 ```
 
 Replace every placeholder and verify the CA character by character before posting.
@@ -110,7 +110,7 @@ robinhood-chain  pons-v2  liquidity  price-impact  defi  memecoin  webmcp
 - Site, profile, and pinned post use the same frog and line.
 - Contract links are correct and checksum-verified.
 - Launch post says `estimate`, never `guaranteed proceeds`.
-- No wallet connection or signature request is introduced for the launch.
+- Holder Check requests only a public address; no signature, approval, network switch, or transaction request is introduced.
 
 ## What not to claim
 

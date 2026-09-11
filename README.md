@@ -10,7 +10,8 @@
 </p>
 
 <p align="center"><strong>Measure the exit before the jump.</strong><br/>A browser and local CLI for inspecting Pons V2 exit liquidity on Robinhood Chain.</p>
-<p align="center"><a href="#start-in-one-minute">Start</a> · <a href="#live-inspection">Live inspection</a> · <a href="docs/COMMANDS.md">Commands</a> · <a href="docs/METHODOLOGY.md">Methodology</a> · <a href="docs/ARCHITECTURE.md">Architecture</a></p>
+<p align="center"><a href="https://hopout.xyz">Website</a> · <a href="https://hopout.xyz/terminal">Terminal</a> · <a href="https://hopout.xyz/docs">Docs</a> · <a href="https://x.com/insomnia_vip">X / Twitter</a></p>
+<p align="center"><a href="#start-in-one-minute">Start locally</a> · <a href="#holder-check">Holder Check</a> · <a href="#live-inspection">Live inspection</a> · <a href="docs/COMMANDS.md">Commands</a> · <a href="docs/METHODOLOGY.md">Methodology</a> · <a href="docs/ARCHITECTURE.md">Architecture</a></p>
 
 ## Why HOP OUT
 
@@ -24,11 +25,12 @@ HOP OUT takes a token and position, then measures the difference at **10%, 25%, 
 
 A styled documentation view of an actual CLI result. The capture time is printed inside the image; it is a historical estimate, not a current quote. [Full captured data →](assets/readme/live-snapshot.json)
 
-## Available in v0.2
+## Available in the current source
 
 | Surface | What works |
 | --- | --- |
 | Browser terminal | Amount or public wallet → four exit estimates → receipt |
+| Holder Check | Optional EVM address connection → official `$HOPOUT` balance → holder receipt; waits for a verified CA |
 | Local CLI | `inspect`, `demo`, `doctor`; no web server required |
 | Offline walkthrough | Synthetic POND example, labelled DEMO, no provider requests |
 | Exports | JSON for scripts, Markdown for a readable receipt |
@@ -36,7 +38,19 @@ A styled documentation view of an actual CLI result. The capture time is printed
 | Graduated pool | Canonical published depth with an explicit approximation label |
 | Verification | Provider fixtures, input checks, CLI tests, Node 22/24 CI configuration |
 
-The [hosted preview](https://hop-out-rh.nikitaguguman.chatgpt.site) currently requires owner access. Read the [web docs](https://hop-out-rh.nikitaguguman.chatgpt.site/docs) or run the repository locally. No HOP OUT token contract has been deployed by this repository.
+The site is still in pre-launch. The Holder Check remains inactive until a verified `$HOPOUT` contract address is configured. No HOP OUT token contract has been deployed by this repository.
+
+### Holder Check
+
+Open `/holders` in a local build to request an account from an injected EVM wallet. The browser sends only the selected public address to HOP OUT; there is no signature, approval, network switch or transaction request. After the official contract is published, configure it server-side:
+
+```bash
+HOPOUT_CONTRACT_ADDRESS=0x... pnpm dev
+```
+
+The holder receipt reads the wallet's token balance, calculates the same four independent exit sizes, and can show estimated exit P&L only when the holder supplies a USD cost basis. Cost basis is never inferred.
+
+Before the contract is configured, **View example receipt** opens a visibly labelled synthetic holder result. Its wallet, balance, price, depth and P&L are invented solely to demonstrate the interface.
 
 ## Start in one minute
 
@@ -63,7 +77,7 @@ Open the web terminal with:
 pnpm dev
 ```
 
-Visit `http://localhost:5173` for the project landing page, then open `/terminal` to run the read-only tool. Use **OFFLINE DEMO** or enter a real contract and position.
+Visit `http://localhost:5173` for the project landing page, then open `/terminal` to run the read-only tool or `/holders` for the optional holder flow. Use **OFFLINE DEMO** or enter a real contract and position.
 
 ## Live inspection
 
@@ -132,6 +146,7 @@ lib/hopout/
   quote.ts              Shared live engine and provider reads
   math.mjs              Integer curve / published-depth math
   input.ts              Shared validation and error mapping
+  project-token.ts      Verified $HOPOUT contract configuration gate
   demo.ts               Isolated synthetic example
   receipt.ts            Plain-text and Markdown rendering
 app/                    Browser terminal and read-only API
@@ -144,7 +159,7 @@ test/                   Deterministic fixtures and CLI tests
 
 ## API and development
 
-`POST /api/quote` accepts `{ "token": "0x…", "amount": "1000000" }` or `wallet` instead of `amount`. Responses include the method, source URLs, observation time and available block/pool identifiers. `GET /api/health` checks Pons availability.
+`POST /api/quote` accepts `{ "token": "0x…", "amount": "1000000" }` or `wallet` instead of `amount`. `GET /api/holder` reports whether the official contract is configured; `POST /api/holder` accepts only a public `wallet` address and remains unavailable until that contract is verified. Responses include the method, source URLs, observation time and available block/pool identifiers. `GET /api/health` checks Pons availability.
 
 ```bash
 pnpm check
@@ -156,6 +171,6 @@ The terminal images are documentation illustrations of existing outputs, not sep
 
 ## Boundaries and sources
 
-HOP OUT holds no keys and has no transaction path. Estimates exclude gas, MEV and future state changes. It is not an executable quote or proof that a token is safe.
+HOP OUT holds no keys and has no transaction path. The optional Holder Check requests only a public EVM address. Estimates exclude gas, MEV and future state changes. It is not an executable quote, tax record, or proof that a token is safe.
 
 Built against public [Pons Portal data](https://www.ponsportal.fun/docs.html), [Pons V2 contracts](https://github.com/ponsdotdev/ponsfamily/tree/main/contractsV2), [Robinhood Chain](https://docs.robinhood.com/chain/) and [DexScreener](https://docs.dexscreener.com/api/reference). Independent of these services. MIT — see [LICENSE](LICENSE).

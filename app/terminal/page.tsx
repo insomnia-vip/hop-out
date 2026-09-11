@@ -204,6 +204,7 @@ export default function TerminalPage() {
         <nav aria-label="Terminal navigation">
           <span className="tool-network"><i /> RH 4663</span>
           <a href="/docs">DOCS</a>
+          <a href="/holders">HOLDERS</a>
           <a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">SOURCE ↗</a>
           <a href="/">SITE ↗</a>
         </nav>

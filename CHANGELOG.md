@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Added a dedicated Holder Check route that can request a public EVM wallet address and estimate the official `$HOPOUT` balance at four independent exit sizes.
+- Added optional cost-basis input for estimated exit P&L; the app does not infer acquisition cost.
+- Kept the holder route in a safe pre-launch state until a valid `HOPOUT_CONTRACT_ADDRESS` is configured.
+- Added a visibly labelled synthetic holder receipt for previewing the complete flow before CA publication.
+
 ## 0.2.0
 
 - Local CLI: live inspect, offline demo, provider doctor, JSON/Markdown exports.

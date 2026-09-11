@@ -2,6 +2,14 @@
   "name": "hop-out",
   "version": "0.2.0",
   "description": "Read-only exit-liquidity estimator for Pons V2 tokens on Robinhood Chain.",
+  "homepage": "https://hopout.xyz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/insomnia-vip/hop-out.git"
+  },
+  "bugs": {
+    "url": "https://github.com/insomnia-vip/hop-out/issues"
+  },
   "private": true,
   "engines": {
     "node": ">=22.13.0"

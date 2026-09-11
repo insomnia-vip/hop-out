@@ -1,6 +1,6 @@
 # Security policy
 
-HOP OUT is intentionally read-only. It does not request private keys, seed phrases, wallet connections, signatures, approvals, or transactions.
+HOP OUT is intentionally read-only. The Holder Check may request an account from an injected EVM wallet, then uses only that public address. It does not request private keys, seed phrases, signatures, approvals, network changes, or transactions.
 
 ## Report a vulnerability
 

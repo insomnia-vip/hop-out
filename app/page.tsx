@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- Vinext Link navigation throws at runtime; hard navigations are intentional. */
 import Image from "next/image";
-import { ArrowRight, Code2, ShieldCheck, Terminal, Zap } from "lucide-react";
+import { ArrowRight, Code2, ShieldCheck, Terminal, Wallet, Zap } from "lucide-react";
 import { PROJECT_LINKS } from "@/lib/hopout/links";
 
 const checks = [
@@ -21,17 +21,18 @@ export default function Home() {
         <nav aria-label="Landing navigation">
           <a href="#product">THE PRODUCT</a>
           <a href="#how-it-works">HOW IT WORKS</a>
+          <a href="/holders">HOLDERS</a>
           <a href="/docs">DOCS</a>
         </nav>
         <div className="site-actions">
           <a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">GITHUB ↗</a>
           <a href={PROJECT_LINKS.twitter} target="_blank" rel="noreferrer" title="Follow $HOPOUT launch status on X">TWITTER ↗</a>
-          <a className="buy-token" href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer" title="Open Pons and verify the official contract before trading">BUY $HOP OUT <span>↗</span></a>
+          <a className="buy-token" href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer" title="Open Pons and verify the official contract before trading">BUY $HOPOUT <span>↗</span></a>
         </div>
       </header>
       <div className="token-rail">
         <div>
-          <span className="token-live"><b>$HOP OUT</b> PRE-LAUNCH</span>
+          <span className="token-live"><b>$HOPOUT</b> PRE-LAUNCH</span>
           <i />
           <span className="token-ca"><small>CA</small><code>PENDING — NOT PUBLISHED</code></span>
           <div className="token-rail-actions">
@@ -50,10 +51,11 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <a className="primary-cta" href="/terminal"><Terminal size={18} /> OPEN TERMINAL <ArrowRight size={18} /></a>
+            <a className="secondary-cta" href="/holders"><Wallet size={17} /> HOLDER CHECK</a>
             <a className="secondary-cta" href={PROJECT_LINKS.github} target="_blank" rel="noreferrer"><Code2 size={17} /> VIEW SOURCE</a>
           </div>
           <div className="safety-rail" aria-label="Safety boundaries">
-            <span>NO WALLET CONNECT</span><span>NO PRIVATE KEYS</span><span>NO TRADES</span>
+            <span>OPTIONAL ADDRESS CONNECT</span><span>NO SIGNATURES</span><span>NO TRADES</span>
           </div>
         </div>
 
