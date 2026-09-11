@@ -1,5 +1,5 @@
 <p align="center"><img src="public/hop-out-toad.png" width="128" alt="HOP OUT pixel frog" /></p>
-<p align="center"><img src="assets/banner.svg" width="100%" alt="HOP OUT — Big bag. Small door." /></p>
+<p align="center"><img src="assets/banner-v2.png" width="100%" alt="HOP OUT — Big bag. Small door." /></p>
 
 <p align="center">
   <a href="https://github.com/insomnia-vip/hop-out/actions/workflows/ci.yml"><img src="https://github.com/insomnia-vip/hop-out/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
