@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="440" viewBox="0 0 1440 440" role="img" aria-labelledby="title desc">
   <title id="title">HOP OUT — Big bag. Small door.</title>
-  <desc id="desc">Exit liquidity terminal for Robinhood Chain. Open source, read-only, local CLI and browser.</desc>
+  <desc id="desc">Exit liquidity tool for Robinhood Chain. Open source, with a local CLI and browser app.</desc>
   <defs>
     <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M 24 0 L 0 0 0 24" fill="none" stroke="#caff38" stroke-opacity=".09"/></pattern>
     <linearGradient id="fade"><stop stop-color="#caff38" stop-opacity=".1"/><stop offset="1" stop-color="#caff38" stop-opacity="0"/></linearGradient>

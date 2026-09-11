@@ -44,7 +44,7 @@ export default function Home() {
 
       <section className="landing-hero">
         <div className="hero-copy">
-          <p className="landing-kicker"><span>READ ONLY</span> EXIT LIQUIDITY / ROBINHOOD CHAIN 4663</p>
+          <p className="landing-kicker"><span>LIVE TOOL</span> EXIT LIQUIDITY / ROBINHOOD CHAIN 4663</p>
           <h1><span>BIG BAG.</span><em>SMALL DOOR.</em></h1>
           <p className="hero-deck">
             Your chart prices one token. HOP OUT tests the whole position against the liquidity that has to absorb it.
@@ -96,7 +96,7 @@ export default function Home() {
         </div>
 
         <div className="receipt-preview">
-          <div className="preview-head"><span>$COPY / SAMPLE INPUT</span><b>READ ONLY</b></div>
+          <div className="preview-head"><span>$COPY / SAMPLE INPUT</span><b>EXIT RECEIPT</b></div>
           <div className="preview-value">
             <div><span>SCREEN VALUE</span><strong>$24,800</strong></div>
             <i>→</i>

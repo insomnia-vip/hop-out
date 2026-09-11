@@ -38,7 +38,7 @@ A styled documentation view of an actual CLI result. The capture time is printed
 | Graduated pool | Canonical published depth with an explicit approximation label |
 | Verification | Provider fixtures, input checks, CLI tests, Node 22/24 CI configuration |
 
-The site is still in pre-launch. The Holder Check remains inactive until a verified `$HOPOUT` contract address is configured. No HOP OUT token contract has been deployed by this repository.
+HOP OUT is available at [hopout.xyz](https://hopout.xyz) with the browser terminal, documentation, offline demo and local CLI ready to use. The project-token Holder Check activates when a verified `$HOPOUT` contract address is configured; until then, its clearly labelled synthetic receipt demonstrates the complete flow.
 
 ### Holder Check
 
@@ -77,7 +77,7 @@ Open the web terminal with:
 pnpm dev
 ```
 
-Visit `http://localhost:5173` for the project landing page, then open `/terminal` to run the read-only tool or `/holders` for the optional holder flow. Use **OFFLINE DEMO** or enter a real contract and position.
+Visit `http://localhost:5173` for the project landing page, then open `/terminal` to run the exit-liquidity tool or `/holders` for the optional holder flow. Use **OFFLINE DEMO** or enter a real contract and position.
 
 ## Live inspection
 
@@ -97,7 +97,7 @@ pnpm hop inspect --token <TOKEN_ADDRESS> --wallet <PUBLIC_WALLET>
 
 ### Check the sources
 
-![HOP OUT doctor: captured Robinhood RPC, Pons API and DexScreener checks, with measured latency and read-only boundaries](assets/readme/doctor.svg)
+![HOP OUT doctor: captured Robinhood RPC, Pons API and DexScreener checks, with measured latency and safety boundaries](assets/readme/doctor.svg)
 
 The doctor checks public provider responses and the RPC chain ID. These are measured results from the printed capture time, not a continuous uptime monitor. [Captured checks →](assets/readme/doctor-snapshot.json)
 
@@ -149,7 +149,7 @@ lib/hopout/
   project-token.ts      Verified $HOPOUT contract configuration gate
   demo.ts               Isolated synthetic example
   receipt.ts            Plain-text and Markdown rendering
-app/                    Browser terminal and read-only API
+app/                    Browser terminal, Holder Check and API
 assets/                 Wordmark, terminal illustrations and source captures
 public/                 Pixel frog mascot
 docs/                   Methodology, commands, testing and launch kit

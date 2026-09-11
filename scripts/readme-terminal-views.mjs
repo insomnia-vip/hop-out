@@ -117,11 +117,11 @@ export function terminalViews({ live, demo, text, wordmark, esc }) {
 
   const q = live.quotes.at(-1);
   const strip = brand(20, 17, 13)
-    + t(20, 137, "the read-only exit-liquidity terminal for Pons V2 on Robinhood Chain", muted, 16)
+    + t(20, 137, "the exit-liquidity tool for Pons V2 on Robinhood Chain", muted, 16)
     + t(20, 177, "hop-out inspect", green, 17)
     + t(187, 177, "pons v2 / Robinhood Chain (4663) / no signer", white, 17)
-    + block(757, 158, 108, 24, green) + t(766, 176, "READ ONLY", "#080c07", 16)
-    + t(884, 177, "CAPTURED SNAPSHOT", yellow, 15)
+    + block(757, 158, 126, 24, green) + t(766, 176, "EXIT TOOL", "#080c07", 16)
+    + t(902, 177, "CAPTURED SNAPSHOT", yellow, 15)
     + t(20, 204, `${date(live.observedAt)} / ${live.token.symbol} / ${live.market.phaseLabel}`, muted, 15)
     + h(222, 20, 1180)
     + t(20, 248, "COPY", white, 18, 'font-weight="bold"')

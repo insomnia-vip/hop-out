@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Updated product positioning across the site and repository to present HOP OUT as a working exit-liquidity tool while preserving its non-custodial safety boundaries.
 - Added a dedicated Holder Check route that can request a public EVM wallet address and estimate the official `$HOPOUT` balance at four independent exit sizes.
 - Added optional cost-basis input for estimated exit P&L; the app does not infer acquisition cost.
 - Kept the holder route in a safe pre-launch state until a valid `HOPOUT_CONTRACT_ADDRESS` is configured.

@@ -199,7 +199,7 @@ export default function TerminalPage() {
           <span><b>HOP OUT</b><small>EXIT LIQUIDITY DESK</small></span>
         </a>
         <div className="tool-commandbar" aria-label="Terminal status">
-          <span>hop@rh:~/terminal</span><b>$</b><em>inspect --read-only --chain 4663</em><i />
+          <span>hop@rh:~/terminal</span><b>$</b><em>inspect --chain 4663</em><i />
         </div>
         <nav aria-label="Terminal navigation">
           <span className="tool-network"><i /> RH 4663</span>
@@ -213,7 +213,7 @@ export default function TerminalPage() {
       <section className="tool-context" aria-label="Inspection context">
         <div><span>SESSION</span><b className="live"><i /> {status}</b></div>
         <div><span>POSITION SOURCE</span><b>{mode === "amount" ? "TOKEN AMOUNT" : "PUBLIC WALLET"}</b></div>
-        <div><span>EXECUTION</span><b>READ ONLY</b></div>
+        <div><span>ENGINE</span><b>EXIT ESTIMATE</b></div>
         <div><span>OUTPUT</span><b>4 EXIT SIZES</b></div>
       </section>
 
@@ -309,7 +309,7 @@ export default function TerminalPage() {
 
           <div className="tool-safe">
             <ShieldCheck size={18} />
-            <div><b>READ-ONLY BY DESIGN</b><p>No browser wallet, private keys, approvals or transaction path.</p></div>
+            <div><b>NON-CUSTODIAL BY DESIGN</b><p>No browser wallet, private keys, approvals or transaction path.</p></div>
           </div>
         </aside>
 
@@ -420,7 +420,7 @@ export default function TerminalPage() {
       </section>
 
       <footer className="tool-footer">
-        <span>HOP OUT / READ-ONLY EXIT DESK</span>
+        <span>HOP OUT / EXIT LIQUIDITY DESK</span>
         <a href="/#how-it-works">HOW IT WORKS <ArrowUpRight size={13} /></a>
         <span>NO WALLET CONNECT / NO TRADES</span>
       </footer>

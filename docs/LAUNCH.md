@@ -31,7 +31,7 @@ Attach a cropped receipt showing the gap. Keep its DEMO label if using invented 
 ```text
 Introducing HOP OUT.
 
-A read-only exit-liquidity terminal for Pons V2 tokens on Robinhood Chain.
+An exit-liquidity tool for Pons V2 tokens on Robinhood Chain.
 
 Paste a token + amount (or public wallet).
 See what selling 10 / 25 / 50 / 100% could actually return.
@@ -71,7 +71,7 @@ App: [SITE]
 Code: [GITHUB]
 CA: [CONTRACT]
 
-Optional address connect. No signatures. Read-only. Open source.
+Optional address connect. No signatures. Working product. Open source.
 ```
 
 Replace every placeholder and verify the CA character by character before posting.
@@ -92,7 +92,7 @@ No chart screenshots. Just the door.
 Suggested short description:
 
 ```text
-Your bag grew. The exit didn't — read-only exit-liquidity terminal for Pons V2 on Robinhood Chain.
+Your bag grew. The exit didn't — exit-liquidity tool for Pons V2 on Robinhood Chain.
 ```
 
 Suggested topics:

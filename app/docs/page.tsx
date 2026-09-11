@@ -51,7 +51,7 @@ export default function DocsPage() {
           <section className="docs-intro" id="overview">
             <p className="section-index">HOP OUT / DOCUMENTATION</p>
             <h1>READ THE DOOR.<br />THEN DECIDE.</h1>
-            <p>HOP OUT is a read-only exit-liquidity inspector for Pons V2 tokens on Robinhood Chain. It compares a position&apos;s spot value with estimated proceeds at four independent sale sizes.</p>
+            <p>HOP OUT is an exit-liquidity tool for Pons V2 tokens on Robinhood Chain. It compares a position&apos;s spot value with estimated proceeds at four independent sale sizes.</p>
             <a className="primary-cta" href="/terminal"><Terminal size={17} /> RUN THE TOOL <ArrowRight size={17} /></a>
           </section>
 
@@ -93,7 +93,7 @@ export default function DocsPage() {
           <section className="docs-section docs-safety" id="safety">
             <div className="docs-number">05</div>
             <div>
-              <h2>READ-ONLY BOUNDARY</h2>
+              <h2>SAFETY BOUNDARY</h2>
               <p><ShieldCheck size={17} /> The terminal needs no wallet connection. Holder Check can request a public EVM address, but never a signature, approval, transaction, private key, or custody. Estimates can change as pool state moves and are not executable quotes or financial advice.</p>
               <a className="text-link" href={PROJECT_LINKS.github} target="_blank" rel="noreferrer"><Code2 size={16} /> READ THE SOURCE</a>
             </div>

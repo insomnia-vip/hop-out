@@ -204,7 +204,7 @@ export default function HoldersPage() {
           <Image src="/hop-out-toad-cutout.png" width={42} height={42} alt="" priority />
           <span><b>HOP OUT</b><small>HOLDER EXIT DESK</small></span>
         </a>
-        <div className="holder-command"><span>holder@rh:~$</span> check --token HOPOUT --read-only</div>
+        <div className="holder-command"><span>holder@rh:~$</span> check --token HOPOUT --holder</div>
         <a className="holder-back" href="/"><ArrowLeft size={14} /> HOME</a>
       </header>
 

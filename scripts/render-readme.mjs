@@ -141,7 +141,7 @@ doctor.checks.forEach((check, i) => {
     + text(172, y, check.name, 20) + text(581, y, `${check.latencyMs}ms`, 18, c.blue);
 });
 diagnostic += text(58, 442, healthy ? "3/3 source checks passed at capture time." : "Some sources were unavailable at capture time.", 16, healthy ? c.lime : c.orange)
-  + label(776, 202, "READ-ONLY BOUNDARY", c.lime)
+  + label(776, 202, "SAFETY BOUNDARY", c.lime)
   + text(776, 252, "01  Public RPC reads", 19) + text(776, 289, "02  Public market data", 19) + text(776, 326, "03  No transaction path", 19)
   + line(776, 353, 1142, 353) + label(776, 386, "NO KEYS / NO SIGNER") + label(776, 417, "CHAIN ID / 4663")
   + text(36, 505, `CAPTURED ${utc(doctor.capturedAt)} / STATUS CAN CHANGE`, 15, c.dim);
@@ -173,7 +173,7 @@ exported += text(778, 330, "TEXT", 28) + text(778, 359, "Read it in your termina
 
 const images = {
   ...terminalViews({ live, demo, text, wordmark, esc }),
-  "live-receipt.svg": frame(720, "hop-out / inspect", "CAPTURED LIVE DATA / READ ONLY", receipt, `Historical COPY exit estimate captured ${utc(live.observedAt)}: spot ${usd(full.spotValueUsd)}, estimated full exit ${usd(full.proceedsUsd)}. Not an executable quote.`),
+  "live-receipt.svg": frame(720, "hop-out / inspect", "CAPTURED LIVE DATA / EXIT ESTIMATE", receipt, `Historical COPY exit estimate captured ${utc(live.observedAt)}: spot ${usd(full.spotValueUsd)}, estimated full exit ${usd(full.proceedsUsd)}. Not an executable quote.`),
   "exit-ladder.svg": frame(645, "hop-out / exit ladder", "SYNTHETIC DEMO / NO NETWORK", ladder, "Four synthetic sale sizes, 10, 25, 50 and 100 percent, with estimated proceeds and haircut. Larger sales lose more to price impact."),
   "doctor.svg": frame(535, "hop-out / doctor", "CAPTURED PROVIDER CHECK", diagnostic, `Provider diagnostics captured ${utc(doctor.capturedAt)}. ${doctor.checks.map((check) => `${check.name}: ${check.ok ? "OK" : "FAIL"}, ${check.latencyMs} milliseconds`).join("; ")}.`),
   "json-export.svg": frame(830, "hop-out / receipt export", "SYNTHETIC DEMO / JSON EXCERPT", exported, "A real subset of the synthetic JSON export, including demo provenance, position and the full-sale quote. JSON, text and Markdown exports are supported."),
