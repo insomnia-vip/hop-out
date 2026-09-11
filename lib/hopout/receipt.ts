@@ -13,6 +13,7 @@ export function renderReceipt(report: ExitReport, markdown = false) {
     `Observed: ${report.observedAt}`,
     `Token: ${report.token.address}`,
     `Position: ${report.position.amount} ${plain(report.token.symbol)}`,
+    ...(report.position.sellableCapped ? [`Sellable now: ${report.position.sellableAmount} ${plain(report.token.symbol)}`] : []),
     `Block: ${report.evidence.blockNumber ?? "not pinned (published market snapshot)"}`,
     `Screen: ${quoteValue(full.spotValueQuote, report.market.pairLabel)} (${usdValue(full.spotValueUsd)})`,
     `Est. exit: ${quoteValue(full.proceedsQuote, report.market.pairLabel)} (${usdValue(full.proceedsUsd)})`,

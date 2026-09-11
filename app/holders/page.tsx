@@ -4,6 +4,8 @@
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, ExternalLink, LoaderCircle, RefreshCw, ShieldCheck, Wallet, X } from "lucide-react";
+import { TokenContract } from "@/components/token-contract";
+import { PROJECT_LINKS } from "@/lib/hopout/links";
 import type { ExitReport } from "@/lib/hopout/types";
 
 type EthereumProvider = {
@@ -45,6 +47,15 @@ function money(value: number | null | undefined) {
   }).format(value);
 }
 
+function quoteValue(usd: number | null | undefined, quote: number | null | undefined, pairLabel: string) {
+  return usd != null ? money(usd) : quote != null ? `${number(quote, 8)} ${pairLabel}` : "—";
+}
+
+function basisValue(value: number | null, currency: string) {
+  if (value == null) return "—";
+  return currency === "USD" ? money(value) : `${number(value, 8)} ${currency}`;
+}
+
 function exampleHolderReport(): ExitReport {
   const amount = 250_000;
   const tokenDepth = 1_000_000;
@@ -70,7 +81,7 @@ function exampleHolderReport(): ExitReport {
     observedAt: "2026-01-01T00:00:00.000Z",
     evidence: { mode: "demo", blockNumber: null, poolId: null, sources: [] },
     token: { address: "0x2222222222222222222222222222222222222222", name: "HOP OUT Example", symbol: "HOPOUT", decimals: 18 },
-    position: { source: "wallet", wallet: "0x1111111111111111111111111111111111111111", amount: String(amount) },
+    position: { source: "wallet", wallet: "0x1111111111111111111111111111111111111111", amount: String(amount), sellableAmount: String(amount), sellableCapped: false },
     market: { phase: 2, phaseLabel: "Synthetic pool", venue: "uniswap-v4-depth", pairLabel: "USDC", priceInPair: priceUsd, priceUsd, liquidityUsd: quoteDepthUsd * 2, volume24hUsd: null, totalFeeBps: feeBps },
     method: { precision: "market-depth-estimate", label: "Synthetic holder example", note: "EXAMPLE DATA: invented balance, depth and price. This shows the holder flow and does not represent a deployed token or live market." },
     quotes,
@@ -99,7 +110,7 @@ export default function HoldersPage() {
       });
       const payload = await response.json() as ExitReport | { error?: string; code?: string };
       if (!response.ok) {
-        if ("code" in payload && payload.code === "TOKEN_PRELAUNCH") {
+        if ("code" in payload && payload.code === "TOKEN_UNAVAILABLE") {
           setConfigured(false);
           return;
         }
@@ -184,14 +195,16 @@ export default function HoldersPage() {
   const full = report?.quotes.find((quote) => quote.fraction === 1) ?? null;
   const cost = costBasis.trim() === "" ? null : Number(costBasis);
   const validCost = cost != null && Number.isFinite(cost) && cost >= 0 ? cost : null;
-  const pnl = full?.proceedsUsd != null && validCost != null ? full.proceedsUsd - validCost : null;
+  const basisCurrency = full?.proceedsUsd != null ? "USD" : report?.market.pairLabel ?? "USD / QUOTE";
+  const exitProceeds = full ? full.proceedsUsd ?? full.proceedsQuote : null;
+  const pnl = exitProceeds != null && validCost != null ? exitProceeds - validCost : null;
   const pnlPercent = pnl != null && validCost != null && validCost > 0 ? (pnl / validCost) * 100 : null;
   const state = useMemo(() => {
     if (loading) return ["READING POSITION", "loading"];
     if (error) return ["CHECK FAILED", "error"];
     if (report?.evidence.mode === "demo") return ["SYNTHETIC EXAMPLE", "pending"];
     if (report) return ["LIVE SNAPSHOT", "live"];
-    if (configured === false) return ["CA PENDING", "pending"];
+    if (configured === false) return ["TOKEN UNAVAILABLE", "error"];
     if (wallet) return ["WALLET READY", "ready"];
     return ["WAITING FOR WALLET", "idle"];
   }, [configured, error, loading, report, wallet]);
@@ -214,6 +227,9 @@ export default function HoldersPage() {
           <h1>CONNECT.<br /><span>CHECK THE DOOR.</span></h1>
           <p className="holder-lead">Connect an EVM wallet. HOP OUT uses only its public address to read the official $HOPOUT balance on Robinhood Chain.</p>
 
+          <TokenContract className="holder-token-ca" />
+          <a className="holder-token-link" href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer">VIEW OFFICIAL TOKEN ON PONS <ExternalLink size={12} /></a>
+
           {!wallet ? (
             <button className="holder-connect-button" type="button" onClick={() => void connect()} disabled={connecting}>
               {connecting ? <LoaderCircle className="spin" size={18} /> : <Wallet size={18} />}
@@ -235,7 +251,7 @@ export default function HoldersPage() {
           </button>
 
           <label className="holder-cost">
-            <span>YOUR COST BASIS <small>OPTIONAL / USD</small></span>
+            <span>YOUR COST BASIS <small>OPTIONAL / {basisCurrency}</small></span>
             <input
               type="number"
               inputMode="decimal"
@@ -243,9 +259,9 @@ export default function HoldersPage() {
               step="any"
               value={costBasis}
               onChange={(event) => setCostBasis(event.target.value)}
-              placeholder="What you paid for this bag"
+              placeholder={`What you paid in ${basisCurrency}`}
             />
-            <p>Needed for estimated P&amp;L. Without your cost basis, HOP OUT will not invent a profit number.</p>
+            <p>Use the currency shown above. Without your cost basis, HOP OUT will not invent a profit number.</p>
           </label>
 
           {error && <p className="holder-error" role="alert">{error}</p>}
@@ -273,21 +289,22 @@ export default function HoldersPage() {
 
               <div className="holder-metrics">
                 <div><span>YOU HOLD</span><strong>{number(report.position.amount, 6)}</strong><small>${report.token.symbol}</small></div>
-                <div><span>SCREEN VALUE</span><strong>{money(full?.spotValueUsd)}</strong><small>last-price reference</small></div>
-                <div className="holder-exit"><span>EST. FULL EXIT</span><strong>{money(full?.proceedsUsd)}</strong><small>{number(full?.proceedsQuote, 8)} {report.market.pairLabel}</small></div>
+                <div className="holder-sellable"><span>MAX SELLABLE NOW</span><strong>{number(report.position.sellableAmount, 6)}</strong><small>{report.position.sellableCapped ? "limited by real curve reserves" : "whole wallet balance"}</small></div>
+                <div><span>{report.position.sellableCapped ? "SELLABLE VALUE" : "SCREEN VALUE"}</span><strong>{quoteValue(full?.spotValueUsd, full?.spotValueQuote, report.market.pairLabel)}</strong><small>last-price reference</small></div>
+                <div className="holder-exit"><span>EST. EXIT PROCEEDS</span><strong>{quoteValue(full?.proceedsUsd, full?.proceedsQuote, report.market.pairLabel)}</strong><small>{report.position.sellableCapped ? "current sellable amount" : "whole wallet balance"}</small></div>
                 <div className="holder-haircut"><span>EXIT HAIRCUT</span><strong>{number(full?.haircutPct, 2)}%</strong><small>impact + modeled fees</small></div>
               </div>
 
               <div className={`holder-pnl ${pnl == null ? "empty" : pnl >= 0 ? "positive" : "negative"}`}>
                 <div>
                   <span>EST. EXIT P&amp;L VS YOUR COST BASIS</span>
-                  <strong>{pnl == null ? "ADD COST BASIS" : money(pnl)}</strong>
+                  <strong>{pnl == null ? "ADD COST BASIS" : basisValue(pnl, basisCurrency)}</strong>
                 </div>
                 <div>
                   <span>RETURN AFTER EST. EXIT</span>
                   <strong>{pnlPercent == null ? "—" : `${pnlPercent >= 0 ? "+" : ""}${number(pnlPercent, 2)}%`}</strong>
                 </div>
-                <p>{pnl == null ? "Enter what you paid in USD to calculate this field." : `${money(full?.proceedsUsd)} estimated full exit − ${money(validCost)} entered cost basis.`} Not tax or accounting data.</p>
+                <p>{pnl == null ? `Enter what you paid in ${basisCurrency} to calculate this field.` : `${basisValue(exitProceeds, basisCurrency)} estimated exit − ${basisValue(validCost, basisCurrency)} entered cost basis.`} Not tax or accounting data.</p>
               </div>
 
               <div className="holder-table-wrap">
@@ -319,12 +336,12 @@ export default function HoldersPage() {
             <div className="holder-empty">
               {loading ? <LoaderCircle className="spin" size={72} /> : <Image src="/hop-out-toad-cutout.png" width={112} height={112} alt="" />}
               <div>
-                <span>{loading ? "READING OFFICIAL TOKEN BALANCE" : configured === false ? "SAFE PRE-LAUNCH STATE" : error ? "POSITION UNAVAILABLE" : wallet ? "WALLET CONNECTED" : "WAITING FOR WALLET"}</span>
-                <h2>{loading ? "MEASURING THE WHOLE BAG." : configured === false ? "ADDRESS READY. TOKEN CA PENDING." : error ? "THE CHECK STOPPED." : "YOUR BAG. ITS REAL EXIT."}</h2>
+                <span>{loading ? "READING OFFICIAL TOKEN BALANCE" : configured === false ? "OFFICIAL TOKEN UNAVAILABLE" : error ? "POSITION UNAVAILABLE" : wallet ? "WALLET CONNECTED" : "WAITING FOR WALLET"}</span>
+                <h2>{loading ? "MEASURING THE WHOLE BAG." : configured === false ? "THE CHECK IS TEMPORARILY OFFLINE." : error ? "THE CHECK STOPPED." : "YOUR BAG. ITS REAL EXIT."}</h2>
                 <p>{loading
                   ? "Reading the public balance and calculating four independent exit sizes."
                   : configured === false
-                    ? "The holder calculation activates only after the verified $HOPOUT contract address is configured."
+                    ? "The official $HOPOUT contract could not be loaded by this build."
                     : error
                       ? error
                       : "Connect a wallet to compare its $HOPOUT screen value with estimated proceeds at 10%, 25%, 50% and 100%."
@@ -336,7 +353,7 @@ export default function HoldersPage() {
       </section>
 
       <footer className="holder-footer">
-        <span>$HOPOUT / HOLDER MODE</span>
+        <span>$HOPOUT / HOLDER MODE / V0.3</span>
         <a href="/terminal">CHECK ANOTHER TOKEN ↗</a>
         <span>ESTIMATE ONLY / NO TRADES</span>
       </footer>

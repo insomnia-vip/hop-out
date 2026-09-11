@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- Vinext Link navigation throws at runtime; hard navigations are intentional. */
 import Image from "next/image";
 import { ArrowRight, Code2, ShieldCheck, Terminal, Wallet, Zap } from "lucide-react";
+import { TokenContract } from "@/components/token-contract";
 import { PROJECT_LINKS } from "@/lib/hopout/links";
 
 const checks = [
@@ -32,30 +33,30 @@ export default function Home() {
       </header>
       <div className="token-rail">
         <div>
-          <span className="token-live"><b>$HOPOUT</b> PRE-LAUNCH</span>
+          <span className="token-live"><b>$HOPOUT</b> LIVE ON PONS</span>
           <i />
-          <span className="token-ca"><small>CA</small><code>PENDING — NOT PUBLISHED</code></span>
+          <TokenContract />
           <div className="token-rail-actions">
-            <a href={PROJECT_LINKS.twitter} target="_blank" rel="noreferrer">FOLLOW LAUNCH ↗</a>
-            <a href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer">OPEN PONS ↗</a>
+            <a href="/holders">HOLDER CHECK ↗</a>
+            <a href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer">VIEW ON PONS ↗</a>
           </div>
         </div>
       </div>
 
       <section className="landing-hero">
         <div className="hero-copy">
-          <p className="landing-kicker"><span>LIVE TOOL</span> EXIT LIQUIDITY / ROBINHOOD CHAIN 4663</p>
+          <p className="landing-kicker"><span>V0.3 LIVE</span> EXIT LIQUIDITY / ROBINHOOD CHAIN 4663</p>
           <h1><span>BIG BAG.</span><em>SMALL DOOR.</em></h1>
           <p className="hero-deck">
             Your chart prices one token. HOP OUT tests the whole position against the liquidity that has to absorb it.
           </p>
           <div className="hero-actions">
             <a className="primary-cta hero-terminal-cta" href="/terminal"><Terminal size={18} /> OPEN TERMINAL <ArrowRight size={18} /></a>
-            <a className="secondary-cta" href="/holders"><Wallet size={17} /> HOLDER CHECK</a>
+            <a className="secondary-cta" href="/holders"><Wallet size={17} /> HOLDER MODE / NEW</a>
             <a className="secondary-cta" href={PROJECT_LINKS.github} target="_blank" rel="noreferrer"><Code2 size={17} /> VIEW SOURCE</a>
           </div>
           <div className="safety-rail" aria-label="Safety boundaries">
-            <span>OPTIONAL ADDRESS CONNECT</span><span>NO SIGNATURES</span><span>NO TRADES</span>
+            <span>HOLDER MODE ADDED</span><span>NO SIGNATURES</span><span>NO TRADES</span>
           </div>
         </div>
 
@@ -140,7 +141,7 @@ export default function Home() {
       </section>
 
       <footer className="landing-footer">
-        <span>HOP OUT / 2026</span>
+        <span>HOP OUT / V0.3 / 2026</span>
         <p><ShieldCheck size={15} /> ESTIMATES, NOT EXECUTION OR FINANCIAL ADVICE</p>
         <div><a href="/docs">DOCS</a><a href={PROJECT_LINKS.github} target="_blank" rel="noreferrer">OPEN SOURCE ↗</a></div>
       </footer>

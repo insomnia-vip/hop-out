@@ -21,6 +21,8 @@ export type ExitReport = {
     source: "amount" | "wallet";
     wallet: string | null;
     amount: string;
+    sellableAmount: string;
+    sellableCapped: boolean;
   };
   market: {
     phase: number;

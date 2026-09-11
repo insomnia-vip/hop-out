@@ -6,10 +6,11 @@ import { curveSellQuote } from "../lib/hopout/math.mjs";
 import { demoReport } from "../.hopout-build/demo.js";
 import { renderReceipt } from "../.hopout-build/receipt.js";
 import { getHopOutContract } from "../.hopout-build/project-token.js";
+import { HOP_OUT_CONTRACT_ADDRESS } from "../.hopout-build/links.js";
 
 const token = "0x0000000000000000000000000000000000000001";
 const quote = "0x0000000000000000000000000000000000000000";
-function fixture(phase = 2, pairId = "pool") {
+function fixture(phase = 2, pairId = "pool", walletBalance = 100n) {
   const reads = [];
   return { reads, dependencies: {
     async json(url) {
@@ -20,7 +21,7 @@ function fixture(phase = 2, pairId = "pool") {
     reader: { async getBlockNumber() { return 123n; }, async readContract(input) {
       reads.push(input);
       const unit = 10n ** 18n;
-      return { getReserves: [10n * unit, 10000n * unit], feeBps: 100n, creatorTaxBps: 100n, realQuoteReserve: 5n * unit, readyToGraduate: false, balanceOf: 100n * unit }[input.functionName];
+      return { getReserves: [10n * unit, 10000n * unit], feeBps: 100n, creatorTaxBps: 100n, realQuoteReserve: 5n * unit, readyToGraduate: false, balanceOf: walletBalance * unit }[input.functionName];
     } },
   } };
 }
@@ -50,6 +51,13 @@ test("curve reads pin all contract values to the same block", async () => {
 test("curve rejects a hypothetical position with insufficient real reserves", async () => {
   await assert.rejects(buildExitReport({ token, amount: "100000" }, fixture(0).dependencies), /INSUFFICIENT_RESERVES/);
 });
+test("holder quotes cap at the amount currently sellable from real curve reserves", async () => {
+  const result = await buildExitReport({ token, wallet: token }, fixture(0, "pool", 100000n).dependencies);
+  assert.equal(result.position.amount, "100000");
+  assert.equal(result.position.sellableCapped, true);
+  assert.ok(Number(result.position.sellableAmount) < Number(result.position.amount));
+  assert.equal(result.quotes.at(-1).tokenAmount, result.position.sellableAmount);
+});
 test("amount precision is not silently rounded", async () => {
   await assert.rejects(buildExitReport({ token, amount: "0.1234567890123456789" }, fixture().dependencies), /INVALID_AMOUNT/);
 });
@@ -65,7 +73,7 @@ test("offline demo is visibly synthetic and its export keeps provenance", () => 
 });
 
 test("holder mode activates only with a valid configured contract", () => {
-  assert.equal(getHopOutContract({}), null);
+  assert.equal(getHopOutContract({}), HOP_OUT_CONTRACT_ADDRESS);
   assert.equal(getHopOutContract({ HOPOUT_CONTRACT_ADDRESS: "pending" }), null);
   assert.equal(getHopOutContract({ HOPOUT_CONTRACT_ADDRESS: `  ${token}  ` }), token);
 });

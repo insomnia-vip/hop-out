@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-html-link-for-pages -- Vinext Link navigation throws at runtime; hard navigations are intentional. */
 import { ArrowRight, Code2, ShieldCheck, Terminal } from "lucide-react";
+import { TokenContract } from "@/components/token-contract";
 import { PROJECT_LINKS } from "@/lib/hopout/links";
 
 const exits = [
@@ -27,12 +28,12 @@ export default function DocsPage() {
       </header>
       <div className="token-rail">
         <div>
-          <span className="token-live"><b>$HOPOUT</b> PRE-LAUNCH</span>
+          <span className="token-live"><b>$HOPOUT</b> LIVE ON PONS</span>
           <i />
-          <span className="token-ca"><small>CA</small><code>PENDING — NOT PUBLISHED</code></span>
+          <TokenContract />
           <div className="token-rail-actions">
-            <a href={PROJECT_LINKS.twitter} target="_blank" rel="noreferrer">FOLLOW LAUNCH ↗</a>
-            <a href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer">OPEN PONS ↗</a>
+            <a href="/holders">HOLDER CHECK ↗</a>
+            <a href={PROJECT_LINKS.pons} target="_blank" rel="noreferrer">VIEW ON PONS ↗</a>
           </div>
         </div>
       </div>
@@ -49,7 +50,7 @@ export default function DocsPage() {
 
         <article className="docs-main">
           <section className="docs-intro" id="overview">
-            <p className="section-index">HOP OUT / DOCUMENTATION</p>
+            <p className="section-index">HOP OUT / V0.3 DOCUMENTATION</p>
             <h1>READ THE DOOR.<br />THEN DECIDE.</h1>
             <p>HOP OUT is an exit-liquidity tool for Pons V2 tokens on Robinhood Chain. It compares a position&apos;s spot value with estimated proceeds at four independent sale sizes.</p>
             <a className="primary-cta" href="/terminal"><Terminal size={17} /> RUN THE TOOL <ArrowRight size={17} /></a>

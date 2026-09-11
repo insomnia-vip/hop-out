@@ -30,7 +30,7 @@ A styled documentation view of an actual CLI result. The capture time is printed
 | Surface | What works |
 | --- | --- |
 | Browser terminal | Amount or public wallet → four exit estimates → receipt |
-| Holder Check | Optional EVM address connection → official `$HOPOUT` balance → holder receipt; waits for a verified CA |
+| Holder Check | Optional EVM address connection → official `$HOPOUT` balance → current sellable amount → holder receipt |
 | Local CLI | `inspect`, `demo`, `doctor`; no web server required |
 | Offline walkthrough | Synthetic POND example, labelled DEMO, no provider requests |
 | Exports | JSON for scripts, Markdown for a readable receipt |
@@ -38,19 +38,17 @@ A styled documentation view of an actual CLI result. The capture time is printed
 | Graduated pool | Canonical published depth with an explicit approximation label |
 | Verification | Provider fixtures, input checks, CLI tests, Node 22/24 CI configuration |
 
-HOP OUT is available at [hopout.xyz](https://hopout.xyz) with the browser terminal, documentation, offline demo and local CLI ready to use. The project-token Holder Check activates when a verified `$HOPOUT` contract address is configured; until then, its clearly labelled synthetic receipt demonstrates the complete flow.
+HOP OUT is available at [hopout.xyz](https://hopout.xyz) with the browser terminal, documentation, offline demo and local CLI ready to use.
+
+Official `$HOPOUT` contract: [`0x78F13072B0F6EBC7fD0B5359c9B4E09C6160cff8`](https://robinhoodchain.blockscout.com/token/0x78F13072B0F6EBC7fD0B5359c9B4E09C6160cff8) · [View on Pons](https://www.ponsfamily.com/launchpad/0x78F13072B0F6EBC7fD0B5359c9B4E09C6160cff8)
 
 ### Holder Check
 
-Open `/holders` in a local build to request an account from an injected EVM wallet. The browser sends only the selected public address to HOP OUT; there is no signature, approval, network switch or transaction request. After the official contract is published, configure it server-side:
+Open `/holders` to request an account from an injected EVM wallet. The browser sends only the selected public address to HOP OUT; there is no signature, approval, network switch or transaction request.
 
-```bash
-HOPOUT_CONTRACT_ADDRESS=0x... pnpm dev
-```
+The holder receipt reads the official token balance, shows how much is currently sellable, and calculates four independent exit sizes. If real curve reserves cannot absorb the whole wallet, the receipt caps its exit rows at the current sellable amount and labels that limit. Estimated exit P&amp;L is shown only after the holder enters a cost basis in the displayed currency (USD when available, otherwise the market quote asset such as ETH). Cost basis is never inferred.
 
-The holder receipt reads the wallet's token balance, calculates the same four independent exit sizes, and can show estimated exit P&L only when the holder supplies a USD cost basis. Cost basis is never inferred.
-
-Before the contract is configured, **View example receipt** opens a visibly labelled synthetic holder result. Its wallet, balance, price, depth and P&L are invented solely to demonstrate the interface.
+**View example receipt** remains available as a visibly labelled synthetic walkthrough. Its wallet, balance, price, depth and P&amp;L are invented solely to demonstrate the interface.
 
 ## Start in one minute
 
@@ -146,7 +144,7 @@ lib/hopout/
   quote.ts              Shared live engine and provider reads
   math.mjs              Integer curve / published-depth math
   input.ts              Shared validation and error mapping
-  project-token.ts      Verified $HOPOUT contract configuration gate
+  project-token.ts      Official $HOPOUT contract with an optional runtime override
   demo.ts               Isolated synthetic example
   receipt.ts            Plain-text and Markdown rendering
 app/                    Browser terminal, Holder Check and API
@@ -159,7 +157,7 @@ test/                   Deterministic fixtures and CLI tests
 
 ## API and development
 
-`POST /api/quote` accepts `{ "token": "0x…", "amount": "1000000" }` or `wallet` instead of `amount`. `GET /api/holder` reports whether the official contract is configured; `POST /api/holder` accepts only a public `wallet` address and remains unavailable until that contract is verified. Responses include the method, source URLs, observation time and available block/pool identifiers. `GET /api/health` checks Pons availability.
+`POST /api/quote` accepts `{ "token": "0x…", "amount": "1000000" }` or `wallet` instead of `amount`. `GET /api/holder` reports the official `$HOPOUT` contract; `POST /api/holder` accepts only a public `wallet` address. Responses include the holder balance, current sellable amount, method, source URLs, observation time and available block/pool identifiers. `GET /api/health` checks Pons availability.
 
 ```bash
 pnpm check

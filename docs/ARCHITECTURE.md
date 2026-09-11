@@ -4,7 +4,7 @@
 terminal / WebMCP ----------------------> POST /api/quote
 holder page -- public address only ----> POST /api/holder
                     |                            |
-                    |                    verified $HOPOUT CA gate
+                    |                    official $HOPOUT contract
                     |                            |
                     +-------------+--------------+
                                   |
@@ -18,7 +18,7 @@ holder page -- public address only ----> POST /api/holder
 
 The terminal never talks to a wallet provider. The separate Holder Check can ask an injected EVM wallet for an account, then passes only that public address to the server. It does not request a signature, approval, transaction, private key, or network switch. Secrets are not required. Browser requests use server routes; the local CLI calls the same engine directly and needs no running website. Both quote paths produce one normalized, timestamped receipt.
 
-The math lives in `lib/hopout/math.mjs`; orchestration and source selection live in `lib/hopout/quote.ts`; response mapping lives in `app/api/quote/route.ts` and `app/api/holder/route.ts`. The holder route is gated by a validated `HOPOUT_CONTRACT_ADDRESS` through `lib/hopout/project-token.ts`.
+The math lives in `lib/hopout/math.mjs`; orchestration and source selection live in `lib/hopout/quote.ts`; response mapping lives in `app/api/quote/route.ts` and `app/api/holder/route.ts`. The holder route uses the verified official contract from `lib/hopout/links.ts`; `HOPOUT_CONTRACT_ADDRESS` remains available as an optional runtime override.
 
 `bin/hop-out.mjs` dispatches CLI commands. `tsconfig.cli.json` compiles the shared engine into ignored `.hopout-build/`. The isolated demo creates a synthetic receipt without importing provider execution. JSON/Markdown exports use exclusive file creation, preserving existing files.
 

@@ -196,7 +196,7 @@ export default function TerminalPage() {
       <header className="tool-header">
         <a className="tool-logo" href="/" aria-label="HOP OUT home">
           <Image src="/hop-out-toad-cutout.png" width={42} height={42} alt="" priority />
-          <span><b>HOP OUT</b><small>EXIT LIQUIDITY DESK</small></span>
+          <span><b>HOP OUT</b><small>V0.3 EXIT LIQUIDITY DESK</small></span>
         </a>
         <div className="tool-commandbar" aria-label="Terminal status">
           <span>hop@rh:~/terminal</span><b>$</b><em>inspect --chain 4663</em><i />
@@ -332,7 +332,7 @@ export default function TerminalPage() {
             <div className="tool-report">
               <div className="report-identity">
                 <div><span>TOKEN</span><strong>${report.token.symbol}</strong><small>{short(report.token.address)}</small></div>
-                <div><span>POSITION</span><strong>{number(report.position.amount)}</strong><small>{report.position.source === "wallet" ? short(report.position.wallet || "", 6) : "manual amount"}</small></div>
+                <div><span>POSITION</span><strong>{number(report.position.amount)}</strong><small>{report.position.sellableCapped ? `${number(report.position.sellableAmount)} sellable now` : report.position.source === "wallet" ? short(report.position.wallet || "", 6) : "manual amount"}</small></div>
                 <div><span>MARKET</span><strong>{report.market.phaseLabel}</strong><small>{report.market.venue}</small></div>
                 <div><span>OBSERVED</span><strong>{isDemo ? "DEMO" : "LIVE"}</strong><small>{new Date(report.observedAt).toLocaleTimeString()}</small></div>
               </div>
@@ -420,7 +420,7 @@ export default function TerminalPage() {
       </section>
 
       <footer className="tool-footer">
-        <span>HOP OUT / EXIT LIQUIDITY DESK</span>
+        <span>HOP OUT / V0.3 / EXIT LIQUIDITY DESK</span>
         <a href="/#how-it-works">HOW IT WORKS <ArrowUpRight size={13} /></a>
         <span>NO WALLET CONNECT / NO TRADES</span>
       </footer>

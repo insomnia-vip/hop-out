@@ -32,7 +32,7 @@ creator tax = floor(gross quote out × creatorTaxBps / 10,000)
 net quote out = gross quote out - base fee - creator tax
 ```
 
-The curve sell fee and creator tax are read on-chain and rounded separately, matching Pons' `sell` implementation. All contract reads use one recorded block. The engine also reads `realQuoteReserve()` and `readyToGraduate()`: it rejects a position whose gross output exceeds real trading reserves and refuses a curve already ready to graduate. Pricing reserves may include virtual liquidity. HOP OUT labels this path `protocol-math`; it still does not simulate transaction execution or gas.
+The curve sell fee and creator tax are read on-chain and rounded separately, matching Pons' `sell` implementation. All contract reads use one recorded block. The engine also reads `realQuoteReserve()` and `readyToGraduate()`. Manual positions whose gross output exceeds real trading reserves are rejected. For a wallet balance, the holder receipt instead caps its quote rows at the amount currently sellable against those reserves and keeps the full balance visible separately. Pricing reserves may include virtual liquidity. HOP OUT labels this path `protocol-math`; it still does not simulate transaction execution or gas.
 
 ## Phase 2: graduated market
 

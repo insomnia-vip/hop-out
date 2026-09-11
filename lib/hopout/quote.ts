@@ -94,6 +94,7 @@ type PonsPrice = {
   priceEth?: number;
   poolId?: string;
   lpFeeBps?: number;
+  sellableTokens?: string;
 };
 
 type DexPair = {
@@ -149,6 +150,21 @@ function selectPair(pairs: DexPair[], token: string, poolId?: string) {
 
 function fractionRaw(total: bigint, fraction: number) {
   return (total * BigInt(Math.round(fraction * 10_000))) / 10_000n;
+}
+
+function publishedSellableRaw(value: string | undefined) {
+  return value && /^\d+$/.test(value) ? BigInt(value) : null;
+}
+
+function maximumSellableRaw(position: bigint, tokenReserve: bigint, quoteReserve: bigint, realQuoteReserve: bigint) {
+  let low = 0n;
+  let high = position;
+  while (low < high) {
+    const middle = (low + high + 1n) / 2n;
+    if (constantProductOut(middle, tokenReserve, quoteReserve) <= realQuoteReserve) low = middle;
+    else high = middle - 1n;
+  }
+  return low;
 }
 
 async function resolveAmount(
@@ -223,11 +239,23 @@ export async function buildExitReport(rawInput: unknown, dependencies = { json: 
     if (quoteReserve <= 0n || tokenReserve <= 0n) throw new Error("NO_MARKET");
     const curveFee = Number(feeValue), creatorTax = Number(taxValue);
     const totalFeeBps = curveFee + creatorTax;
-    if (constantProductOut(position.raw, tokenReserve, quoteReserve) > (realValue as bigint)) throw new Error("INSUFFICIENT_RESERVES");
+    const realQuoteReserve = realValue as bigint;
+    let sellableRaw = position.raw;
+    if (position.source === "wallet") {
+      const published = publishedSellableRaw(price.sellableTokens);
+      if (published != null && published < sellableRaw) sellableRaw = published;
+      if (constantProductOut(sellableRaw, tokenReserve, quoteReserve) > realQuoteReserve) {
+        sellableRaw = maximumSellableRaw(sellableRaw, tokenReserve, quoteReserve, realQuoteReserve);
+      }
+      if (sellableRaw <= 0n) throw new Error("INSUFFICIENT_RESERVES");
+    } else if (constantProductOut(position.raw, tokenReserve, quoteReserve) > realQuoteReserve) {
+      throw new Error("INSUFFICIENT_RESERVES");
+    }
+    const sellableCapped = sellableRaw < position.raw;
     const currentPrice = Number(formatUnits(quoteReserve, pairDecimals)) / Number(formatUnits(tokenReserve, token.decimals));
     const quoteUsd = tokenPriceUsd && currentPrice ? tokenPriceUsd / currentPrice : null;
     const quotes = FRACTIONS.map((fraction) => {
-      const amountRaw = fractionRaw(position.raw, fraction);
+      const amountRaw = fractionRaw(sellableRaw, fraction);
       const outputRaw = curveSellQuote(amountRaw, tokenReserve, quoteReserve, curveFee, creatorTax);
       const tokenAmount = Number(formatUnits(amountRaw, token.decimals));
       const proceedsQuote = Number(formatUnits(outputRaw, pairDecimals));
@@ -250,6 +278,8 @@ export async function buildExitReport(rawInput: unknown, dependencies = { json: 
         source: position.source,
         wallet: position.wallet,
         amount: formatUnits(position.raw, token.decimals),
+        sellableAmount: formatUnits(sellableRaw, token.decimals),
+        sellableCapped,
       },
       market: {
         phase: token.phase,
@@ -265,7 +295,9 @@ export async function buildExitReport(rawInput: unknown, dependencies = { json: 
       method: {
         precision: "protocol-math",
         label: "Pons V2 curve math",
-        note: "Computed from live curve reserves and the launch's frozen sell fees. State can move before execution.",
+        note: sellableCapped
+          ? "The wallet is larger than the amount currently sellable against real curve reserves. Exit rows use the current sellable amount, not the whole balance. State can move before execution."
+          : "Computed from live curve reserves and the launch's frozen sell fees. State can move before execution.",
       },
       quotes,
       links: { explorer: token.blockscoutUrl, market: pair?.url ?? null },
@@ -307,6 +339,8 @@ export async function buildExitReport(rawInput: unknown, dependencies = { json: 
       source: position.source,
       wallet: position.wallet,
       amount: formatUnits(position.raw, token.decimals),
+      sellableAmount: formatUnits(position.raw, token.decimals),
+      sellableCapped: false,
     },
     market: {
       phase: token.phase,

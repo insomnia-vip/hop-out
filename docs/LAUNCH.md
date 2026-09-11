@@ -24,7 +24,7 @@ Spot value is not exit value.
 Tomorrow, the frog measures the door. 🐸
 ```
 
-Attach a cropped receipt showing the gap. Keep its DEMO label if using invented data; otherwise retain the live observation time. Do not show a token contract yet.
+Attach a cropped receipt showing the gap. Keep its DEMO label if using invented data; otherwise retain the live observation time. Use the verified CA only in the launch post below.
 
 ### T-12h — product reveal
 
@@ -67,9 +67,9 @@ HOP OUT is live on Robinhood Chain.
 Utility first: measure exit liquidity before the jump.
 Meme second: the frog always finds the door.
 
-App: [SITE]
-Code: [GITHUB]
-CA: [CONTRACT]
+App: https://hopout.xyz/
+Code: https://github.com/insomnia-vip/hop-out
+CA: 0x78F13072B0F6EBC7fD0B5359c9B4E09C6160cff8
 
 Optional address connect. No signatures. Working product. Open source.
 ```

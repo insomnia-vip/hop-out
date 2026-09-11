@@ -22,8 +22,8 @@ export async function POST(request: Request) {
   const contract = getHopOutContract();
   if (!contract) {
     return NextResponse.json({
-      code: "TOKEN_PRELAUNCH",
-      error: "The verified $HOPOUT contract address has not been published yet.",
+      code: "TOKEN_UNAVAILABLE",
+      error: "The official $HOPOUT contract is temporarily unavailable.",
     }, { status: 503, headers: noStore });
   }
 
